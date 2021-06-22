@@ -9,7 +9,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [ ] Dgraph
 - [ ] Focalboard
 - [ ] Ghost
-- [ ] InfluxDB
+- [x] InfluxDB
 - [x] MySQL
 - [x] MinIO
 - [ ] Penpot

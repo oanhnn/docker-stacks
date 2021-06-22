@@ -1,0 +1,52 @@
+# =========================================
+# InfluxDB 2.0+
+# https://docs.influxdata.com/influxdb/v2.0/install/?t=Docker
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: '3.5'
+
+# Networks
+networks:
+  influxdb-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+# Volumes
+volumes:
+  influxdb-data:
+    name: influxdb-data-vol
+    external: true
+  influxdb-conf:
+    name: influxdb-conf-vol
+    external: true
+
+# Services
+services:
+  influxdb:
+    image: influxdb:2.0
+    environment:
+      # - DOCKER_INFLUXDB_INIT_MODE=setup
+      # - DOCKER_INFLUXDB_INIT_USERNAME=my-user
+      # - DOCKER_INFLUXDB_INIT_PASSWORD=my-password
+      # - DOCKER_INFLUXDB_INIT_ORG=my-org
+      # - DOCKER_INFLUXDB_INIT_BUCKET=my-bucket
+      # - DOCKER_INFLUXDB_INIT_RETENTION=1w
+      # - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-auth-token
+      - INFLUXD_LOG_LEVEL=info
+      - INFLUXD_NATS_PORT=4222
+    networks:
+      - influxdb-net
+      - proxy-net
+    # ports:
+    #   - 8086:8086
+    restart: unless-stopped
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-conf:/etc/influxdb2

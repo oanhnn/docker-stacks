@@ -1,0 +1,111 @@
+# Path to InfluxDB user interface (UI) assets
+assets-path: ""
+
+# Path to the BoltDB database
+bolt-path: /var/lib/influxdb2/influxd.bolt
+
+# Path to persistent storage engine files where InfluxDB stores all Time-Structure Merge Tree (TSM) data on disk.
+engine-path: /var/lib/influxdb2/engine
+
+# Add a /debug/flush endpoint to the InfluxDB HTTP API to clear stores.
+# InfluxData uses this endpoint in end-to-end testing.
+e2e-testing: false
+
+feature-flags: {}
+
+# Http server configurations
+http-bind-address: :8086
+http-idle-timeout: 3m
+http-read-header-timeout: 10s
+http-read-timeout: 0s
+http-write-timeout: 0s
+
+# InfluxQL
+influxql-max-select-buckets: 0
+influxql-max-select-point: 0
+influxql-max-select-series: 0
+
+key-name: ""
+
+# Logging
+log-level: info
+
+# Disable the HTTP /metrics endpoint which exposes internal InfluxDB metrics.
+metrics-disabled: false
+
+# NATS streaming server
+nats-max-payload-bytes: 1048576
+nats-port: 4222
+
+# Disable the task scheduler.If problematic tasks prevent InfluxDB from starting,
+# use this option to start InfluxDB without scheduling or executing tasks.
+no-tasks: false
+
+# Disable the /debug/pprof HTTP endpoint.
+# This endpoint provides runtime profiling data and can be helpful when debugging.
+pprof-disabled: false
+
+# Query config
+query-concurrency: 1024
+query-initial-memory-bytes: 0
+query-max-memory-bytes: 0
+query-memory-bytes: 9223372036854775807
+query-queue-size: 1024
+
+# Disables sending telemetry data to InfluxData.
+# The InfluxData telemetry page provides information about what data is collected and how InfluxData uses it.
+reporting-disabled: false
+
+# Specifies the data store for secrets such as passwords and tokens.
+# Store secrets in either the InfluxDB internal BoltDB or in Vault.
+secret-store: bolt # bolt / vault
+
+# Specifies the Time to Live (TTL) in minutes for newly created user sessions.
+session-length: 60
+# Disables automatically extending a user’s session TTL on each request.
+session-renew-disabled: false
+
+# Storage config
+storage-cache-max-memory-size: 1073741824
+storage-cache-snapshot-memory-size: 26214400
+storage-cache-snapshot-write-cold-duration: 10m0s
+storage-compact-full-write-cold-duration: 4h0m0s
+storage-compact-throughput-burst: 50331648
+storage-max-concurrent-compactions: 0
+storage-max-index-log-file-size: 1048576
+storage-retention-check-interval: 30m0s
+storage-series-file-max-concurrent-snapshot-compactions: 0
+storage-series-id-set-cache-size: 0
+storage-shard-precreator-advance-period: 30m0s
+storage-shard-precreator-check-interval: 10m0s
+storage-tsm-use-madv-willneed: false
+storage-validate-keys: false
+storage-wal-fsync-delay: 0s
+
+# Specifies the data store for REST resources.
+store: bolt # bolt / memory
+
+# Ensures the /api/v2/setup endpoint always returns true to allow onboarding.
+# This configuration option is primary used in continuous integration tests.
+testing-always-allow-setup: false
+
+# TLS config
+tls-cert: ""
+tls-key: ""
+tls-min-version: "1.2"
+tls-strict-ciphers: false
+
+# Enable tracing in InfluxDB and specifies the tracing type. Tracing is disabled by default.
+tracing-type: "" # "" / log / jaeger
+
+# Vault config
+vault-addr: ""
+vault-cacert: ""
+vault-capath: ""
+vault-client-cert: ""
+vault-client-key: ""
+vault-client-timeout: 0s
+vault-max-retries: 0
+vault-skip-verify: false
+vault-tls-server-name: ""
+vault-token: ""
