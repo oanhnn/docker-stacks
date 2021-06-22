@@ -1,0 +1,95 @@
+# =========================================
+# Dgraph
+#
+# This file can be used to setup a Dgraph cluster with 3 Dgraph Alphas and 1 Dgraph Zero node on a
+# Docker Swarm with replication.
+# It expects three virtual machines with hostnames host0, host1, and host2 to be part of the swarm.
+# There is a constraint to make sure that each Dgraph Alpha runs on a particular host.
+#
+# Data would be persisted to a Docker volume called `dgraph-vol` on the virtual machines which are
+# part of the swarm.
+# Run `docker stack deploy -c docker-stack.multi.yml` on the Swarm leader to start the cluster.
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+version: "3.5"
+
+# Networks
+networks:
+  dgraph-net:
+    name: database-net
+    external: true
+
+# Volumes
+volumes:
+  dgraph-vol:
+    name: dgraph-vol
+    external: true
+
+# Services
+services:
+  zero:
+    image: dgraph/dgraph:v21.03.1
+    command: dgraph zero --my=zero:5080 --replicas 3
+    networks:
+      - dgraph-net
+    # ports:
+    #   - 5080:5080
+    #   - 6080:6080
+    restart: unless-stopped
+    volumes:
+      - dgraph-vol:/dgraph
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == host0
+
+  alpha0:
+    image: dgraph/dgraph:v21.03.1
+    command: dgraph alpha --my=alpha0:7080 --zero=zero:5080
+    networks:
+      - dgraph-net
+    # ports:
+    #   - 8080:8080
+    #   - 9080:9080
+    restart: unless-stopped
+    volumes:
+      - dgraph-vol:/dgraph
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == host0
+
+  alpha1:
+    image: dgraph/dgraph:v21.03.1
+    command: dgraph alpha --my=alpha1:7081 --zero=zero:5080 -o 1
+    networks:
+      - dgraph-net
+    # ports:
+    #   - 8081:8081
+    #   - 9081:9081
+    restart: unless-stopped
+    volumes:
+      - dgraph-vol:/dgraph
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == host1
+
+  alpha2:
+    image: dgraph/dgraph:v21.03.1
+    command: dgraph alpha --my=alpha2:7082 --zero=zero:5080 -o 2
+    networks:
+      - dgraph-net
+    # ports:
+    #   - 8082:8082
+    #   - 9082:9082
+    restart: unless-stopped
+    volumes:
+      - dgraph-vol:/dgraph
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == host2

@@ -6,7 +6,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 ## Stacks
 
 - [x] Adminer
-- [ ] Dgraph
+- [x] Dgraph
 - [x] Focalboard
 - [ ] Ghost
 - [x] InfluxDB
