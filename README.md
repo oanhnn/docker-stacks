@@ -12,7 +12,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [ ] InfluxDB
 - [x] MySQL
 - [ ] Penpot
-- [ ] PostgreSQL
+- [x] PostgreSQL
 - [ ] QuestDB
 - [ ] Redis
 - [ ] Redoc
