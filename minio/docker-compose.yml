@@ -1,0 +1,44 @@
+# =========================================
+# MinIO
+# Verion latest
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+# Networks
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+# Volumes
+volumes:
+  minio-vol:
+    name: minio-vol
+    external: true
+
+# Services
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:?Variable not set}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?Variable not set}
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+    networks:
+      - proxy-net
+    # ports:
+    #   - 9000:9000
+    restart: unless-stopped
+    volumes:
+      - minio-vol:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 5

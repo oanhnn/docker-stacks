@@ -11,6 +11,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [ ] Ghost
 - [ ] InfluxDB
 - [x] MySQL
+- [x] MinIO
 - [ ] Penpot
 - [x] PostgreSQL
 - [ ] QuestDB
