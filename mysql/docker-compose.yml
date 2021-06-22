@@ -1,0 +1,65 @@
+# =========================================
+# MySQL  8.0.x
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: '3.5'
+
+# Networks
+networks:
+  mysql-net:
+    name: database-net
+    external: true
+
+# Secrets
+secrets:
+  mysql-root-password:
+    name: mysql-root-password
+    external: true
+  mysql-database:
+    name: mysql-database
+    external: true
+  mysql-user:
+    name: mysql-user
+    external: true
+  mysql-password:
+    name: mysql-password
+    external: true
+
+# Volumes
+volumes:
+  mysql-vol:
+    name: mysql-vol
+    external: true
+
+# Services
+services:
+  mysql:
+    image: mysql:8.0
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --bind-address=0.0.0.0
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql-root-password
+      - MYSQL_DATABASE_FILE=/run/secrets/mysql-database
+      - MYSQL_USER_FILE=/run/secrets/mysql-user
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql-password
+    networks:
+      - mysql-net
+    # ports:
+    #   - 3306:3306
+    restart: unless-stopped
+    secrets:
+      - mysql-root-password
+      - mysql-database
+      - mysql-user
+      - mysql-password
+    volumes:
+      - mysql-vol:/var/lib/mysql
+    healthcheck:
+      test: MYSQL_PWD=$$MYSQL_PASSWORD mysqladmin -h `hostname -i` -P 3306 -u $$MYSQL_USER --silent ping
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 5

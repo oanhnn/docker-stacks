@@ -10,7 +10,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [ ] Focalboard
 - [ ] Ghost
 - [ ] InfluxDB
-- [ ] MySQL
+- [x] MySQL
 - [ ] Penpot
 - [ ] PostgreSQL
 - [ ] QuestDB
