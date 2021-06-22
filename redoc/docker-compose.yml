@@ -1,0 +1,24 @@
+# =========================================
+# OpenAPI documents
+#
+# - Docker Compose 1.18.0+
+# =========================================
+
+# Docker compose syntax version
+# Requires: Docker Engine 17.12.0+
+version: "3.5"
+
+# Services
+services:
+  docs:
+    image: redocly/redoc:latest
+    environment:
+      - SPEC_URL=specs/openapi-v3.yml
+      - PAGE_TITLE="API docs"
+      - PAGE_FAVICON=favicon.png
+      - REDOC_OPTIONS=
+    ports:
+      - 8080:80
+    restart: unless-stopped
+    volumes:
+      - ./specs:/usr/share/nginx/html/specs

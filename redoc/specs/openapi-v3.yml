@@ -1,0 +1,435 @@
+openapi: "3.0.3"
+servers:
+  - url: https://api.example.com
+    description: The production server
+  - url: https://sanbox.example.com
+    description: The sanbox server
+info:
+  title: The API Documents
+  description: |
+    This is a sample server Petstore server.
+    You can find out more about Swagger at
+    [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).
+    For this sample, you can use the api key `special-key` to test the authorization filters.
+
+    # Introduction
+    This API is documented in **OpenAPI format** and is based on
+    [Petstore sample](http://petstore.swagger.io/) provided by [swagger.io](http://swagger.io) team.
+    It was **extended** to illustrate features of [generator-openapi-repo](https://github.com/Rebilly/generator-openapi-repo)
+    tool and [ReDoc](https://github.com/Redocly/redoc) documentation. In addition to standard
+    OpenAPI syntax we use a few [vendor extensions](https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md).
+
+    # OpenAPI Specification
+    This API is documented in **OpenAPI format** and is based on
+    [Petstore sample](http://petstore.swagger.io/) provided by [swagger.io](http://swagger.io) team.
+    It was **extended** to illustrate features of [generator-openapi-repo](https://github.com/Rebilly/generator-openapi-repo)
+    tool and [ReDoc](https://github.com/Redocly/redoc) documentation. In addition to standard
+    OpenAPI syntax we use a few [vendor extensions](https://github.com/Redocly/redoc/blob/master/docs/redoc-vendor-extensions.md).
+
+    # Cross-Origin Resource Sharing
+    This API features Cross-Origin Resource Sharing (CORS) implemented in compliance with  [W3C spec](https://www.w3.org/TR/cors/).
+    And that allows cross-domain communication from the browser.
+    All responses have a wildcard same-origin which makes them completely public and accessible to everyone, including any code on any site.
+
+    # Authentication
+    Petstore offers two forms of authentication:
+      - API Key
+      - OAuth2
+    OAuth2 - an open protocol to allow secure authorization in a simple
+    and standard method from web, mobile and desktop applications.
+
+    <SecurityDefinitions />
+
+  version: "1.0"
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: API Support
+    email: apiteam@swagger.io
+    url: https://github.com/Redocly/redoc
+  x-logo:
+    url: https://rabiloo.com/images/logo_horizontal.png
+    backgroundColor: #FFFFFF
+    altText: Petstore logo
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+security:
+  - Bearer Token: []
+tags:
+  - name: auth
+    description: Authentication APIs
+  - name: users
+    x-displayName: Users APIs
+    description: Users APIs
+  - name: payments
+    x-displayName: Payment APIs
+    description: Payments APIs
+  - name: user_model
+    x-displayName: The User Model
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/User" showReadOnly={true} showWriteOnly={true} />
+  - name: payment_model
+    x-displayName: The Payment Model
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/Payment" showReadOnly={true} showWriteOnly={true} />
+x-tagGroups:
+  - name: Authentication
+    tags:
+      - auth
+  - name: User Management
+    tags:
+      - users
+  - name: Models
+    tags:
+      - user_model
+      - payment_model
+x-webhooks:
+  payment:
+    post:
+      summary: Payment status update
+      description: Information about a new pet in the systems
+      operationId: updatePayment
+      tags:
+        - payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payment"
+      responses:
+        200:
+          description: Return a 200 status to indicate that the data was received successfully
+          content:
+            application/json:
+              schema:
+                type: string
+                example: OK
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerlError"
+components:
+  schemas:
+    Id:
+      type: integer
+      format: int32
+      minimum: 1
+      readOnly: true
+    RoleCode:
+      type: string
+      description: The role code
+      example: admin
+    User:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        name:
+          type: string
+          example: Oanh Nguyen
+        email:
+          type: string
+          example: oanhnn@example.com
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleCode"
+      required:
+        - id
+        - name
+        - email
+        - roles
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+        type:
+          type: string
+          default: Bearer
+      required:
+        - token
+        - type
+    Payment:
+      type: object
+      properties:
+        amount:
+          type: number
+          example: 50000
+        currency:
+          type: string
+          example: USD
+        status:
+          type: string
+          example: paid
+        account:
+          type: string
+          example: 10230440506
+        bank:
+          type: string
+          example: Asia Commercial Joint Stock Bank (ACB)
+        transaction_id:
+          type: number
+          $ref: "#/components/schemas/Id"
+        note:
+          type: string
+          nullable: true
+      required:
+        - account
+        - bank
+        - transaction_id
+        - amount
+        - currency
+        - status
+    GeneralError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          minimum: 100
+        message:
+          type: string
+    ValidationError:
+      allOf:
+        - $ref: "#/components/schemas/GeneralError"
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+  securitySchemes:
+    Bearer Token:
+      type: http
+      scheme: Bearer
+      description: Using a bearer access token via Authorization header
+  parameters:
+    page:
+      name: page
+      description: The page number
+      in: query
+      schema:
+        type: integer
+        default: 1
+    limit:
+      name: limit
+      description: The numbers of items per page
+      in: query
+      schema:
+        type: integer
+        default: 25
+    ContentType:
+      name: Content-Type
+      description: The content type of request body
+      in: header
+      schema:
+        type: string
+        default: application/json
+    AcceptType:
+      name: Accept
+      description: The accepted content type of response
+      in: header
+      schema:
+        type: string
+        default: application/json
+  responses:
+    NoContent:
+      description: No content
+    ResetContent:
+      description: Reset content
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+    InternalServerlError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+paths:
+  /auth/token:
+    # Create token
+    post:
+      tags:
+        - auth
+      summary: Login API
+      description: >
+        Using username and password to login.
+        If login successful, response will include access token.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/AcceptType"
+          required: true
+        - $ref: "#/components/parameters/ContentType"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                client_id:
+                  type: string
+            example:
+              email: oanhnn@example.com
+              password: password
+              client_id: xxxxx
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                client_id:
+                  type: string
+            example:
+              email: oanhnn@example.com
+              password: password
+              client_id: xxxxx
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        422:
+          $ref: "#/components/responses/UnprocessableEntity"
+    # Destroy token
+    delete:
+      tags:
+        - auth
+      summary: Logout API
+      description: Logout current access token
+      responses:
+        204:
+          $ref: "#/components/responses/NoContent"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+  /me:
+    get:
+      tags:
+        - auth
+      summary: Get current user API
+      description: Get current logged user by access token
+      parameters:
+        - $ref: "#/components/parameters/AcceptType"
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - auth
+      summary: Update current user API
+      description: Update current logged user by access token
+      parameters:
+        - $ref: "#/components/parameters/ContentType"
+          required: true
+        - $ref: "#/components/parameters/AcceptType"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json: {}
+          application/x-www-form-urlencoded: {}
+      responses:
+        200:
+          description: Update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get user list API
+      description: Get user list API
+      parameters:
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/AcceptType"
+          required: true
+      responses:
+        200:
+          description: Response user list
+          content:
+            application/json:
+              schema: {}
+        401:
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - users
+      summary: Create user API
+      description: Create new user API
+      parameters:
+        - $ref: "#/components/parameters/AcceptType"
+          required: true
+        - $ref: "#/components/parameters/ContentType"
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json: {}
+          application/x-www-form-urlencoded: {}
+      responses:
+        200:
+          description: The created user detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        403:
+          $ref: "#/components/responses/Forbidden"
