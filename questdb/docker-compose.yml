@@ -1,0 +1,36 @@
+# =========================================
+# QuestDB 6.0.x
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: '3.5'
+
+# Networks
+networks:
+  questdb-net:
+    name: database-net
+    external: true
+
+# Volumes
+volumes:
+  questdb-vol:
+    name: questdb-vol
+    external: true
+
+# Services
+services:
+  questdb:
+    image: questdb/questdb
+    networks:
+      - questdb-net
+    # ports:
+    #   - 9000:9000   # REST api & Web console
+    #   - 9009:9009   # InfluxDB line protocol
+    #   - 8812:8812   # Postgres wire protocol
+    #   - 9003:9003   # Min health server
+    restart: unless-stopped
+    volumes:
+      - questdb-vol:/root/.questdb
