@@ -15,6 +15,6 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [ ] Penpot
 - [x] PostgreSQL
 - [ ] QuestDB
-- [ ] Redis
+- [x] Redis
 - [ ] Redoc
 - [ ] Traefik proxy
