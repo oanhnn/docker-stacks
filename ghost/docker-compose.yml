@@ -1,0 +1,46 @@
+# =========================================
+# Ghost
+# Verion latest
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+# Networks
+networks:
+  mysql-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+# Services
+services:
+  ghost:
+    image: ghost
+    environment:
+      # see https://ghost.org/docs/config/#configuration-options
+      - url=http://localhost:8080
+      # - database__client=mysql
+      # - database__connection__host=db
+      # - database__connection__user=root
+      # - database__connection__password=passwd
+      # - database__connection__database=ghostdb
+      # - mail__transport=SMTP
+      # - mail__options__service=SES
+      # - mail__options__host=
+      # - mail__options__port=465
+      # - mail__options__auth__user=465
+      # - mail__options__auth__pass=465
+      # - mail__from="'Acme Support' <support@example.com>"
+    networks:
+      - mysql-net
+      - proxy-net
+    ports:
+      - 2368:2368
+    restart: unless-stopped
+
+
