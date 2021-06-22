@@ -1,0 +1,32 @@
+# =========================================
+# Adminer
+# Verion latest
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+# Networks
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+# Services
+services:
+  adminer:
+    image: adminer:latest
+    environment:
+      - ADMINER_PLUGINS=dump-zip
+      - ADMINER_DEFAULT_SERVER=mysql
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 8080:8080
+    restart: unless-stopped

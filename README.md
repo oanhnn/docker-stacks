@@ -5,7 +5,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 
 ## Stacks
 
-- [ ] Adminer
+- [x] Adminer
 - [ ] Dgraph
 - [ ] Focalboard
 - [ ] Ghost
