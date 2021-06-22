@@ -7,7 +7,7 @@ File `docker-compose*.yml` for running `docker-compose up`
 
 - [x] Adminer
 - [ ] Dgraph
-- [ ] Focalboard
+- [x] Focalboard
 - [ ] Ghost
 - [x] InfluxDB
 - [x] MySQL

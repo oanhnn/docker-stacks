@@ -1,0 +1,50 @@
+# =========================================
+# Focalboard Personal Server
+# https://www.focalboard.com/download/personal-edition/docker/
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: '3.5'
+
+# Configs
+configs:
+  focalboard-cfg:
+    name: focalboard-cfg
+    external: true
+
+# Networks
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+# Volumes
+volumes:
+  focalboard-vol:
+    name: focalboard-vol
+    external: true
+
+# Services
+services:
+  focalboard:
+    image: mattermost/focalboard
+    configs:
+      - source: focalboard-cfg
+        target: /opt/focalboard/config.json
+        uid: '2000'
+        gid: '2000'
+        mode: 0440
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 80:8000
+    restart: unless-stopped
+    volumes:
+      - focalboard-vol:/data
