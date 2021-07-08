@@ -1,7 +1,8 @@
 # =========================================
 # Dgraph
 #
-# This Docker Compose file can be used to quickly bootup Dgraph Standalone Docker container.
+# This Docker Compose file can be used to quickly bootup a simple stack with Dgraph Zero and Alpha in different
+# Docker containers.
 #
 # Requires:
 # - Docker Engine 17.12.0+
@@ -9,27 +10,35 @@
 # =========================================
 version: "3.5"
 
-# Networks
 networks:
   dgraph-net:
     name: database-net
     external: true
 
-# Volumes
 volumes:
   dgraph-vol:
     name: dgraph-vol
     external: true
 
-# Services
 services:
-  dgraph:
-    image: dgraph/standalone:v21.03.1
+  zero:
+    image: dgraph/dgraph:latest
+    command: dgraph zero --my=zero:5080
     networks:
       - dgraph-net
     # ports:
     #   - 5080:5080
     #   - 6080:6080
+    restart: unless-stopped
+    volumes:
+      - dgraph-vol:/dgraph
+
+  alpha:
+    image: dgraph/dgraph:latest
+    command: dgraph alpha --my=alpha:7080 --zero=zero:5080
+    networks:
+      - dgraph-net
+    # ports:
     #   - 8080:8080
     #   - 9080:9080
     restart: unless-stopped

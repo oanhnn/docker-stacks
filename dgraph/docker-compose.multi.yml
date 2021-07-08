@@ -8,7 +8,7 @@
 #
 # Data would be persisted to a Docker volume called `dgraph-vol` on the virtual machines which are
 # part of the swarm.
-# Run `docker stack deploy -c docker-stack.multi.yml` on the Swarm leader to start the cluster.
+# Run `docker stack deploy -c docker-stack.multi.yml dgraph` on the Swarm leader to start the cluster.
 #
 # Requires:
 # - Docker Engine 17.12.0+
@@ -16,19 +16,16 @@
 # =========================================
 version: "3.5"
 
-# Networks
 networks:
   dgraph-net:
     name: database-net
     external: true
 
-# Volumes
 volumes:
   dgraph-vol:
     name: dgraph-vol
     external: true
 
-# Services
 services:
   zero:
     image: dgraph/dgraph:v21.03.1
