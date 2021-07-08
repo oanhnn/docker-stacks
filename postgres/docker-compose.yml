@@ -6,15 +6,13 @@
 # - Docker Compose 1.18.0+
 # =========================================
 
-version: '3.5'
+version: "3.5"
 
-# Networks
 networks:
   postgres-net:
     name: database-net
     external: true
 
-# Secrets
 secrets:
   postgres-dbname:
     external: true
@@ -26,13 +24,11 @@ secrets:
     external: true
     name: postgres-password
 
-# Volumes
 volumes:
   postgres-vol:
     name: postgres-vol
     external: true
 
-# Services
 services:
   postgres:
     image: postgres:alpine
@@ -54,7 +50,7 @@ services:
     volumes:
       - postgres-vol:/var/lib/postgresql/data
     healthcheck:
-      test: export PGPASSWORD=$$POSTGRES_PASSWORD PING=$$(echo 'SELECT 1' | psql --host `hostname -i` --username $$POSTGRES_USER --dbname $$POSTGRES_DB --quiet --no-align --tuples-only) && [ "$$PING" = '1' ]
+      test: CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
       start_period: 20s
       interval: 5s
       timeout: 5s
