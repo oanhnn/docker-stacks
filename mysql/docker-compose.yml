@@ -6,15 +6,13 @@
 # - Docker Compose 1.18.0+
 # =========================================
 
-version: '3.5'
+version: "3.5"
 
-# Networks
 networks:
   mysql-net:
     name: database-net
     external: true
 
-# Secrets
 secrets:
   mysql-root-password:
     name: mysql-root-password
@@ -29,13 +27,11 @@ secrets:
     name: mysql-password
     external: true
 
-# Volumes
 volumes:
   mysql-vol:
     name: mysql-vol
     external: true
 
-# Services
 services:
   mysql:
     image: mysql:8.0
