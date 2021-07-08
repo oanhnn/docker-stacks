@@ -1,24 +1,38 @@
 # =========================================
 # OpenAPI documents
 #
+# Requires:
+# - Docker Engine 17.12.0+
 # - Docker Compose 1.18.0+
 # =========================================
 
-# Docker compose syntax version
-# Requires: Docker Engine 17.12.0+
 version: "3.5"
 
-# Services
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
 services:
-  docs:
+  apidocs:
     image: redocly/redoc:latest
     environment:
-      - SPEC_URL=specs/openapi-v3.yml
-      - PAGE_TITLE="API docs"
-      - PAGE_FAVICON=favicon.png
+      - SPEC_URL=https://docs.docker.com/engine/api/v1.41.yaml
       - REDOC_OPTIONS=
-    ports:
-      - 8080:80
+    # # Labels for Traefik proxy
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.apidocs.entrypoints=websecure
+    #   - traefik.http.routers.apidocs.rule=Host(`api-docs.example.com`)
+    #   - traefik.http.routers.apidocs.middlewares=internal-ips,admin-auth
+    #   - traefik.http.routers.apidocs.service=apidocs
+    #   - traefik.http.routers.apidocs.tls=true
+    #   - traefik.http.routers.apidocs.tls.certresolver=le
+    #   - traefik.http.routers.apidocs.priority=30
+    #   - traefik.http.services.apidocs.loadbalancer.server.port=80
+    networks:
+      - proxy-net
+    # ports:
+    #   - 8080:80
     restart: unless-stopped
-    volumes:
-      - ./specs:/usr/share/nginx/html/specs
