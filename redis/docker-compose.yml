@@ -8,19 +8,16 @@
 
 version: "3.5"
 
-# Networks
 networks:
   redis-net:
     name: redis-net
     external: true
 
-# Volumes
 volumes:
   redis-vol:
     name: redis-vol
     external: true
 
-# Services
 services:
   redis:
     image: redis:6-alpine
