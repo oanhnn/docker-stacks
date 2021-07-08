@@ -1,8 +1,5 @@
 # Docker compose stacks
 
-File `docker-stack*.yml` for running `docker stack deploy` on Docker Swarm cluster
-File `docker-compose*.yml` for running `docker-compose up`
-
 ## Stacks
 
 - [x] Adminer
@@ -18,3 +15,10 @@ File `docker-compose*.yml` for running `docker-compose up`
 - [x] Redis
 - [x] Redoc
 - [ ] Traefik proxy
+
+## Prepare
+
+- File `docker-stack*.yml` for running `docker stack deploy` on Docker Swarm cluster.
+- File `docker-compose*.yml` for running `docker-compose up` on Docker Machine.
+- Before run stack, you must create Docker networks, Docker volumes, Docker secrets or Docker configs.
+  You can mockup by `docker-compose.override.yml` file follow https://docs.docker.com/compose/extends/
