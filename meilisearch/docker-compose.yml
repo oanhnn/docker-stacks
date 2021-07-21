@@ -23,6 +23,12 @@ volumes:
 services:
   meilisearch:
     image: getmeili/meilisearch
+    environment:
+      - MEILI_ENV=production
+      - MEILI_DB_PATH=/data.ms
+      - MEILI_HTTP_ADDR=0.0.0.0:7700
+      - MEILI_MASTER_KEY=secret
+      - MEILI_NO_SENTRY=true
     networks:
       - meilisearch-net
     # ports:
@@ -30,3 +36,9 @@ services:
     restart: unless-stopped
     volumes:
       - meilisearch-vol:/data.ms
+    healthcheck:
+      interval: 5s
+      retries: 3
+      start_period: 20s
+      test: wget --no-verbose --spider http://`hostname -i`:7700/health
+      timeout: 5s

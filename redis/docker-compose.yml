@@ -30,8 +30,8 @@ services:
     volumes:
       - redis-vol:/data
     healthcheck:
-      test: PING=$$(redis-cli -h `hostname -i` -p 6379 ping) && [ "$$PING" == "PONG" ]
-      start_period: 15s
       interval: 3s
-      timeout: 3s
       retries: 5
+      start_period: 15s
+      test: PING=$$(redis-cli -h `hostname -i` -p 6379 ping) && [ "$$PING" == "PONG" ]
+      timeout: 3s

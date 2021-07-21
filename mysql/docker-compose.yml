@@ -54,8 +54,8 @@ services:
     volumes:
       - mysql-vol:/var/lib/mysql
     healthcheck:
-      test: MYSQL_PWD=$$MYSQL_PASSWORD mysqladmin -h `hostname -i` -P 3306 -u $$MYSQL_USER --silent ping
-      start_period: 20s
       interval: 5s
-      timeout: 5s
       retries: 5
+      start_period: 20s
+      test: MYSQL_PWD=$$MYSQL_PASSWORD mysqladmin -h `hostname -i` -P 3306 -u $$MYSQL_USER --silent ping
+      timeout: 5s

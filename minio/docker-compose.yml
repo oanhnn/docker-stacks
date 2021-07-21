@@ -8,19 +8,16 @@
 
 version: "3.5"
 
-# Networks
 networks:
   proxy-net:
     name: reverse-proxy
     external: true
 
-# Volumes
 volumes:
   minio-vol:
     name: minio-vol
     external: true
 
-# Services
 services:
   minio:
     image: minio/minio:latest
@@ -29,16 +26,28 @@ services:
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:?Variable not set}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?Variable not set}
       - MINIO_PROMETHEUS_AUTH_TYPE=public
+    # # Labels for Traefik proxy
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.adminer.entrypoints=websecure
+    #   - traefik.http.routers.adminer.rule=Host(`minio.example.com`)
+    #   - traefik.http.routers.adminer.service=minio
+    #   - traefik.http.routers.adminer.tls=true
+    #   - traefik.http.routers.adminer.tls.certresolver=le
+    #   - traefik.http.routers.adminer.priority=10
+    #   - traefik.http.services.adminer.loadbalancer.server.port=9000
     networks:
       - proxy-net
+    # # Ports mapping
     # ports:
     #   - 9000:9000
     restart: unless-stopped
     volumes:
       - minio-vol:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      start_period: 20s
       interval: 5s
-      timeout: 5s
       retries: 5
+      start_period: 20s
+      test: curl -f http://`hostname -i`:9000/minio/health/live
+      timeout: 5s
