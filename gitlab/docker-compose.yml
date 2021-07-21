@@ -1,0 +1,66 @@
+# =========================================
+# Gitlab
+# https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-swarm-mode
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+configs:
+  gitlab-config:
+    name: gitlab-config
+    file: ./gitlab.rb.gtpl
+    template_driver: golang
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+secrets:
+  gitlab-root-password:
+    name: gitlab-root-password
+    external: true
+
+volumes:
+  gitlab-data-vol:
+    name: gitlab-data-vol
+    external: true
+  gitlab-logs-vol:
+    name: gitlab-logs-vol
+    external: true
+  gitlab-config-vol:
+    name: gitlab-config-vol
+    external: true
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    configs:
+      - source: gitlab-config
+        target: /gitlab.rb
+    environment:
+      - GITLAB_OMNIBUS_CONFIG=from_file('/gitlab.rb')
+      - GITLAB_DOMAIN=gitlab.example.com
+      - GITLAB_ROOT_PASSWORD_FILE=/run/secrets/gitlab-root-password
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 22:22
+    #   - 80:80
+    #   - 443:443
+    restart: unless-stopped
+    secrets:
+      - gitlab-root-password
+    shm_size: 512M
+    volumes:
+      - gitlab-data-vol:/var/opt/gitlab
+      - gitlab-logs-vol:/var/log/gitlab
+      - gitlab-config-vol:/etc/gitlab
