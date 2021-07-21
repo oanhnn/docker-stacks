@@ -1,0 +1,32 @@
+# =========================================
+# MeiliSearch
+#
+# https://docs.meilisearch.com/learn/getting_started/installation.html
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+networks:
+  meilisearch-net:
+    external: true
+    name: meilisearch-net
+
+volumes:
+  meilisearch-vol:
+    external: true
+    name: meilisearch-vol
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch
+    networks:
+      - meilisearch-net
+    # ports:
+    #   - 7700:7700
+    restart: unless-stopped
+    volumes:
+      - meilisearch-vol:/data.ms
