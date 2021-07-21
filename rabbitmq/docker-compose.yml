@@ -1,0 +1,42 @@
+# =========================================
+# RabbitMQ
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+networks:
+  proxy-net:
+    external: true
+    name: proxy-net
+  rabbitmq-net:
+    external: true
+    name: rabbitmq-net
+
+secrets:
+  rabbitmq-user:
+    external: true
+    name: rabbitmq-user
+  rabbitmq-pass:
+    external: true
+    name: rabbitmq-pass
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER_FILE=/run/secrets/rabbitmq-user
+      - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq-pass
+    networks:
+      - rabbitmq-net
+      - proxy-net
+    # ports:
+    #   - 15672:15672 # RabbitMQ Management HTTP API
+    #   - 5672:5672   # RabbitMQ Management AMQP API
+    secrets:
+      - rabbitmq-user
+      - rabbitmq-pass
+    restart: unless-stopped

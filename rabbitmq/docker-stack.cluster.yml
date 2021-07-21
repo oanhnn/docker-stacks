@@ -1,0 +1,73 @@
+# =========================================
+# RabbitMQ
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+
+version: "3.5"
+
+networks:
+  proxy-net:
+    external: true
+    name: proxy-net
+  rabbitmq-net:
+    external: true
+    name: rabbitmq-net
+
+secrets:
+  rabbitmq-user:
+    external: true
+    name: rabbitmq-user
+  rabbitmq-pass:
+    external: true
+    name: rabbitmq-pass
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER_FILE=/run/secrets/rabbitmq-user
+      - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq-pass
+      - RABBITMQ_ERLANG_COOKIE=cluster_cookie
+    deploy:
+      endpoint_mode: dnsrr
+      # labels:
+      #   # Enable Traefik for this service
+      #   - traefik.enable=true
+      #   - traefik.constraint-label=traefik-public
+
+      #   # RabbitMQ Management HTTP API
+      #   - traefik.tcp.routers.rabbitmq.entrypoints=websecure
+      #   - traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:?Variable not set}`)
+      #   - traefik.http.routers.rabbitmq.middlewares=internal-ips@docker
+      #   - traefik.http.routers.rabbitmq.service=rabbitmq
+      #   - traefik.http.routers.rabbitmq.tls=true
+      #   - traefik.http.routers.rabbitmq.tls.certresolver=le
+      #   - traefik.http.routers.rabbitmq.priority=20
+      #   - traefik.http.services.rabbitmq-svc.loadbalancer.server.port=15672
+
+      #   # RabbitMQ Management AMQP API
+      #   - traefik.tcp.routers.rabbitmq.entrypoints=rabbitmq
+      #   - traefik.tcp.routers.rabbitmq.rule=HostSNI(`rabbitmq.${DOMAIN:?Variable not set}`)
+      #   - traefik.tcp.routers.rabbitmq.service=rabbitmq
+      #   - traefik.tcp.services.rabbitmq.loadbalancer.server.port=5672
+      mode: replicated
+      placement:
+        constraints:
+          # Make the rabbitmq service run only on the node with this label
+          - node.labels.node-has-rabbitmq == true
+        max_replicas_per_node: 1
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - rabbitmq-net
+      - proxy-net
+    secrets:
+      - rabbitmq-user
+      - rabbitmq-pass
