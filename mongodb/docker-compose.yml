@@ -1,0 +1,34 @@
+
+version: "3.5"
+
+networks:
+  database-net:
+    external: true
+    name: database-net
+
+secrets:
+  mongodb-username:
+    external: true
+    name: mongodb-username
+  mongodb-password:
+    external: true
+    name: mongodb-password
+
+volumes:
+  mongodb-vol:
+    external: true
+    name: mongodb-vol
+
+services:
+  mongodb:
+    image: mongo
+    secrets:
+      - mongodb-username
+      - mongodb-password
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME_FILE=/run/secrets/mongodb-username
+      - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/mongodb-password
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb-vol:/data/db
