@@ -1,0 +1,62 @@
+# =========================================
+# Penpot
+#
+# The Open-Source design & prototyping platform
+# =========================================
+
+# Networks
+networks:
+  postgres-net:
+    name: database-net
+    external: true
+  redis-net:
+    name: redis-net
+    external: true
+  penpot-net:
+    name: penpot-net
+    external: true
+
+# Volumes
+volumes:
+  penpot-vol:
+    name: penpot-assets-vol
+    external: true
+
+# Services
+services:
+  frontend:
+    image: penpotapp/frontend:latest
+    depends_on:
+      - backend
+      - exporter
+    env_file:
+      - config.env
+    networks:
+      - penpot-net
+    ports:
+      - 80:80
+    restart: unless-stopped
+    volumes:
+      - penpot-vol:/opt/data
+
+  backend:
+    image: penpotapp/backend:latest
+    env_file:
+      - config.env
+    networks:
+      - penpot-net
+      - postgres-net
+      - redis-net
+    restart: unless-stopped
+    volumes:
+      - penpot-vol:/opt/data
+
+  exporter:
+    image: penpotapp/exporter:latest
+    environment:
+      # Don't touch it; this uses internal docker network to
+      # communicate with the frontend.
+      - PENPOT_PUBLIC_URI=http://frontend
+    restart: unless-stopped
+    networks:
+      - penpot-net
