@@ -1,20 +1,40 @@
 # Docker compose stacks
 
-## Stacks
+## Database
 
 - [x] Adminer
 - [x] Dgraph
-- [x] Focalboard
-- [x] Ghost
 - [x] InfluxDB
 - [x] MySQL
-- [x] MinIO
-- [ ] Penpot
 - [x] PostgreSQL
 - [x] QuestDB
 - [x] Redis
-- [x] Redoc
+- [x] Timescaledb
+
+## Storage
+
+- [x] MinIO
+
+## Proxy
+
 - [ ] Traefik proxy
+
+## Design
+
+- [ ] Penpot
+
+## Low code
+
+- Metabase
+
+## Production
+
+- [x] Ghost
+- [x] Focalboard
+- [x] Redoc
+
+## Demo
+
 
 ## Prepare
 
