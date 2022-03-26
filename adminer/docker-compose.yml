@@ -24,22 +24,19 @@ services:
     environment:
       - ADMINER_PLUGINS=dump-zip
       - ADMINER_DEFAULT_SERVER=mysql
-    # # Labels for Traefik proxy
     # labels:
+    #   # Labels for Traefik proxy
     #   - traefik.enable=true
     #   - traefik.constraint-label=traefik-public
     #   - traefik.http.routers.adminer.entrypoints=websecure
     #   - traefik.http.routers.adminer.rule=Host(`dba.example.com`)
     #   - traefik.http.routers.adminer.middlewares=internal-ips,admin-auth
     #   - traefik.http.routers.adminer.service=adminer
-    #   - traefik.http.routers.adminer.tls=true
-    #   - traefik.http.routers.adminer.tls.certresolver=le
     #   - traefik.http.routers.adminer.priority=10
     #   - traefik.http.services.adminer.loadbalancer.server.port=8080
     networks:
       - database-net
       - proxy-net
-    # # Ports mapping
     # ports:
     #   - 8080:8080
     restart: unless-stopped

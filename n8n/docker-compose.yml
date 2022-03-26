@@ -1,0 +1,66 @@
+# =========================================
+# n8n.io
+#
+# This Docker Compose file can be used to quickly bootup n8n.
+#
+# Requires:
+# - Docker Engine 17.12.0+
+# - Docker Compose 1.18.0+
+# =========================================
+version: "3.5"
+
+networks:
+  # Network for connectting to databases
+  database-net:
+    name: database-net
+    external: true
+  # Network for connectting to proxy server
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+services:
+  n8n:
+    image: docker.io/n8nio/n8n:latest
+    environment:
+      # https://docs.n8n.io/reference/environment-variables.html#database
+      - DB_TYPE=postgresdb  # sqlite, postgresdb, mysqldb, mariadb
+      - DB_TABLE_PREFIX=n8n_
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=user
+      - DB_POSTGRESDB_PASSWORD=password
+      - DB_POSTGRESDB_DATABASE=n8ndb
+      - DB_POSTGRESDB_SCHEMA=public
+      # https://docs.n8n.io/reference/environment-variables.html#timezone
+      - GENERIC_TIMEZONE=UTC
+      # https://docs.n8n.io/reference/environment-variables.html#security
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=user
+      - N8N_BASIC_AUTH_PASSWORD=password
+      # https://docs.n8n.io/reference/environment-variables.html#user-management-and-smtp
+      - N8N_EMAIL_MODE=smtp
+      - N8N_SMTP_HOST=smtp.google.com
+      - N8N_SMTP_PORT=587
+      - N8N_SMTP_USER=username
+      - N8N_SMTP_PASS=password
+      - N8N_SMTP_SENDER=no-reply@example.com
+      - N8N_SMTP_SSL=true
+      # https://docs.n8n.io/reference/environment-variables.html#endpoints
+      - N8N_METRICS=true
+      - N8N_METRICS_PREFIX=n8n_
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.n8n.entrypoints=websecure
+    #   - traefik.http.routers.n8n.rule=Host(`n8n.example.com`)
+    #   - traefik.http.routers.n8n.service=n8n
+    #   - traefik.http.routers.n8n.priority=12
+    #   - traefik.http.services.n8n.loadbalancer.server.port=5678
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 5678:5678
+    restart: unless-stopped
