@@ -1,0 +1,59 @@
+# =========================================
+# MinIO
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  # Reverse proxy network
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  minio-vol:
+    name: minio-vol
+    external: true
+
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':8900'
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?Variable not set}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?Variable not set}
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+    # # Labels for Traefik proxy
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.minio.entrypoints=websecure
+    #   - traefik.http.routers.minio.rule=Host(`minio.example.com`)
+    #   - traefik.http.routers.minio.service=minio
+    #   - traefik.http.routers.minio.tls=true
+    #   - traefik.http.routers.minio.tls.certresolver=le
+    #   - traefik.http.routers.minio.priority=10
+    #   - traefik.http.services.minio.loadbalancer.server.port=9000
+    #   - traefik.http.routers.minio-adm.entrypoints=websecure
+    #   - traefik.http.routers.minio-adm.rule=Host(`adm-minio.example.com`)
+    #   - traefik.http.routers.minio-adm.service=minio
+    #   - traefik.http.routers.minio-adm.tls=true
+    #   - traefik.http.routers.minio-adm.tls.certresolver=le
+    #   - traefik.http.routers.minio-adm.priority=11
+    #   - traefik.http.services.minio-adm.loadbalancer.server.port=8900
+    networks:
+      - proxy-net
+    # ports:
+    #   - 9000:9000
+    #   - 8900:8900
+    restart: unless-stopped
+    volumes:
+      - minio-vol:/data
+    healthcheck:
+      interval: 5s
+      retries: 5
+      start_period: 20s
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      timeout: 5s
