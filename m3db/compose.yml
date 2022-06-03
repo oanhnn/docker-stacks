@@ -1,0 +1,30 @@
+# =========================================
+# M3DB
+# https://m3db.io/docs/quickstart/docker/
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+
+volumes:
+  m3db-vol:
+    name: m3db-vol
+    external: true
+
+services:
+  m3db:
+    image: quay.io/m3db/m3dbnode:latest
+    networks:
+      - database-net
+    ports:
+      - 7201:7201
+      - 7203:7203
+    restart: unless-stopped
+    volumes:
+      - m3db-vol:/var/lib/m3db
