@@ -3,11 +3,9 @@
 # https://www.focalboard.com/download/personal-edition/docker/
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
-
-version: "3.5"
 
 # Configs
 configs:
@@ -45,7 +43,7 @@ services:
     #   - traefik.enable=true
     #   - traefik.constraint-label=traefik-public
     #   - traefik.http.routers.apidocs.entrypoints=websecure
-    #   - traefik.http.routers.apidocs.rule=Host(`focalboard.example.com`)
+    #   - traefik.http.routers.apidocs.rule=Host(`board.example.com`)
     #   - traefik.http.routers.apidocs.middlewares=internal-ips,admin-auth
     #   - traefik.http.routers.apidocs.service=focalboard
     #   - traefik.http.routers.apidocs.tls=true

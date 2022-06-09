@@ -1,0 +1,106 @@
+# =========================================
+# Mattermost
+# Verion 5.36+
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  # Network for connectting to databases
+  # Require MySQL 8.0.12+ or PostgreSQL 10+
+  database-net:
+    name: database-net
+    external: true
+  # Network for connectting to proxy server
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  # Volume for storing Mattermost data
+  mattermost-data:
+    name: mattermost-data
+    external: true
+  # Volume for storing Mattermost logs
+  mattermost-logs:
+    name: mattermost-logs
+    external: true
+  # Volume for storing Mattermost config
+  mattermost-config:
+    name: mattermost-config
+    external: true
+  # Volume for storing Mattermost plugins
+  mattermost-plugins:
+    name: mattermost-plugins
+    external: true
+  # Volume for storing Mattermost client plugins
+  mattermost-client-plugins:
+    name: mattermost-client-plugins
+    external: true
+  # Volume for storing Bleve indexes
+  mattermost-bleve-indexes:
+    name: mattermost-bleve-indexes
+    external: true
+
+services:
+  mattermost:
+    ## This will be 'mattermost-enterprise-edition' or 'mattermost-team-edition' based on the version of Mattermost you're installing.
+    image: mattermost/mattermost-team-edition:7.0
+    environment:
+      # timezone inside container
+      - TZ=UTC
+      # necessary Mattermost options/variables (see env.example)
+      - MM_SQLSETTINGS_DRIVERNAME=postgres
+      - MM_SQLSETTINGS_DATASOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable&connect_timeout=10
+      # necessary for bleve
+      - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
+      # additional settings
+      - MM_SERVICESETTINGS_SITEURL=https://chat.example.com
+    # # Labels for Traefik proxy
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.mattermost.entrypoints=websecure
+    #   - traefik.http.routers.mattermost.rule=Host(`chat.example.com`)
+    #   - traefik.http.routers.mattermost.service=mattermost
+    #   - traefik.http.routers.mattermost.tls=true
+    #   - traefik.http.routers.mattermost.tls.certresolver=le
+    #   - traefik.http.routers.mattermost.priority=20
+    #   - traefik.http.services.mattermost.loadbalancer.server.port=8065
+    networks:
+      - database-net
+      - proxy-net
+    # # Ports mapping
+    # ports:
+    #   - 8065:8065
+    pids_limit: 200
+    restart: unless-stopped
+    read_only: false
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    volumes:
+      - mattermost-config:/mattermost/config:rw
+      - mattermost-data:/mattermost/data:rw
+      - mattermost-logs:/mattermost/logs:rw
+      - mattermost-plugins:/mattermost/plugins:rw
+      - mattermost-client-plugins:/mattermost/client/plugins:rw
+      - mattermost-bleve-indexes:/mattermost/bleve-indexes:rw
+      # When you want to use SSO with GitLab, you have to add the cert pki chain of GitLab inside Alpine
+      # to avoid Token request failed: certificate signed by unknown authority
+      # (link: https://github.com/mattermost/mattermost-server/issues/13059 and https://github.com/mattermost/docker/issues/34)
+      # - ${GITLAB_PKI_CHAIN_PATH}:/etc/ssl/certs/pki_chain.pem:ro
+
+# If you use rolling image tags and feel lucky watchtower can automatically pull new images and
+# instantiate containers from it. https://containrrr.dev/watchtower/
+# Please keep in mind watchtower will have access on the docker socket. This can be a security risk.
+#
+#  watchtower:
+#    container_name: watchtower
+#    image: containrrr/watchtower:latest
+#    restart: unless-stopped
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
