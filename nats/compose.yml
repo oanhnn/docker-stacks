@@ -1,0 +1,25 @@
+# =========================================
+# NATS
+#
+# This Docker Compose file can be used to quickly bootup NATS Cluster in 3 Docker containers.
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  nats-net:
+    name: nats-net
+    external: true
+
+services:
+  nats:
+    image: nats:2
+    networks:
+      - nats-net
+    # ports:
+    #   - 4222:4222
+    #   - 6222:6222
+    #   - 8222:8222
+    restart: unless-stopped

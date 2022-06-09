@@ -1,0 +1,43 @@
+# =========================================
+# NATS
+#
+# This Docker Compose file can be used to quickly bootup NATS Standalone Docker container.
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  nats-net:
+    name: nats-net
+    external: true
+
+services:
+  nats:
+    image: nats:2
+    networks:
+      - nats-net
+    # ports:
+    #   - 4222:4222
+    #   - 6222:6222
+    #   - 8222:8222
+    restart: unless-stopped
+
+  nats-1:
+    image: nats:2
+    command: "--cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    depends_on:
+      - nats
+    networks:
+      - nats-net
+    restart: unless-stopped
+
+  nats-2:
+    image: nats:2
+    command: "--cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    depends_on:
+      - nats
+    networks:
+      - nats-net
+    restart: unless-stopped
