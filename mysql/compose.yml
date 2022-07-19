@@ -2,11 +2,9 @@
 # MySQL  8.0.x
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
-
-version: "3.5"
 
 networks:
   mysql-net:
@@ -34,8 +32,7 @@ volumes:
 
 services:
   mysql:
-    image: mysql:8.0
-    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --bind-address=0.0.0.0
+    image: mysql/mysql-server:8.0
     environment:
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql-root-password
       - MYSQL_DATABASE_FILE=/run/secrets/mysql-database
@@ -57,5 +54,5 @@ services:
       interval: 5s
       retries: 5
       start_period: 20s
-      test: MYSQL_PWD=$$MYSQL_PASSWORD mysqladmin -h `hostname -i` -P 3306 -u $$MYSQL_USER --silent ping
+      test: MYSQL_PWD=$$MYSQL_PASSWORD mysqladmin -h `hostname -i` -P 3306 -u $$MYSQL_USER ping
       timeout: 5s
