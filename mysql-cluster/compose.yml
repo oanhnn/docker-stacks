@@ -1,0 +1,63 @@
+# =========================================
+# MySQL Cluster 8.0.x
+# https://www.mysql.com/products/cluster/
+# https://hub.docker.com/r/mysql/mysql-cluster/
+# https://medium.com/@ahmedamedy/mysql-clustering-with-docker-611dc28b8db7
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+networks:
+  cluster-net:
+    name: mysql-cluster-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1
+
+secrets:
+  mysql-root-password:
+    name: mysql-root-password
+    external: true
+
+services:
+  management1:
+    image: mysql/mysql-cluster:8.0
+    command: ndb_mgmd
+    container_name: management1
+    networks:
+      cluster-net:
+        ipv4_address: 192.168.0.2
+
+  ndb1:
+    image: mysql/mysql-cluster:8.0
+    command: ndbd
+    container_name: ndb1
+    networks:
+      cluster-net:
+        ipv4_address: 192.168.0.3
+
+  ndb2:
+    image: mysql/mysql-cluster:8.0
+    command: ndbd
+    container_name: ndb2
+    networks:
+      cluster-net:
+        ipv4_address: 192.168.0.4
+
+  mysql1:
+    image: mysql/mysql-cluster:8.0
+    command: mysqld
+    container_name: mysql1
+    networks:
+      cluster-net:
+        ipv4_address: 192.168.0.10
+    environment:
+      - MYSQL_ROOT_PASSWORD=/run/secrets/mysql-root-password
+    # ports:
+    #   - 3306:3306
+    restart: unless-stopped
+    secrets:
+      - mysql-root-password
