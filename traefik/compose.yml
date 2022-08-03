@@ -1,21 +1,12 @@
 # =========================================
-# Traefik
-# Verion 2.4.x
-#
-# This file can be used to setup a Traefik proxy on a Docker Swarm with replication.
-#
-# It expects one or more virtual machines to be part of the swarm. There is a constraint to make sure that each Traefik proxy runs on a
-# particular host with label `node-has-traefik=true`.
-# Run `docker stack deploy <stackname> -c docker-stack.yml` on the Swarm leader to start the cluster.
+# Treafik
+# Reverse proxy with automatic TLS certificate generation
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
 
-version: "3.5"
-
-# Networks
 networks:
   # Use the previously created public network "reverse-proxy", shared with other
   # services that need to be publicly available via this Traefik
@@ -23,13 +14,6 @@ networks:
     name: reverse-proxy
     external: true
 
-# Secrets
-secrets:
-  linode-token:
-    name: linode-token
-    external: true
-
-# Volumes
 volumes:
   # Use the previously created volume "certs-vol" to store the certificates, there is a constraint to make sure
   # Traefik is always deployed to the same Docker node with the same volume containing
@@ -38,10 +22,10 @@ volumes:
     name: certs-vol
     external: true
 
-# Services
 services:
   proxy:
     image: traefik:v2.8
+    container_name: traefik
     environment:
       # Enable the Dashboard and API
       - TRAEFIK_API_DASHBOARd=true
@@ -54,7 +38,7 @@ services:
       - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_KEYTYPE=RSA4096
       - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_STORAGE=/certificates/acme.json
       # For debug acme
-      # - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_CASERVER=https://acme-staging-v02.api.letsencrypt.org/directory
+      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_CASERVER=https://acme-staging-v02.api.letsencrypt.org/directory
       # Use the DNS Challenge with Linode Provider
       - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_DNSCHALLENGE=true
       - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_DNSCHALLENGE_PROVIDER=linode
@@ -119,50 +103,35 @@ services:
       - TRAEFIK_PROVIDERS_DOCKER_NETWORK=reverse-proxy
       - TRAEFIK_PROVIDERS_DOCKER_CONSTRAINTS=Label(`traefik.constraint-label`, `traefik-public`)
       - TRAEFIK_PROVIDERS_DOCKER_ENDPOINT=unix:///var/run/docker.sock
-      - TRAEFIK_PROVIDERS_DOCKER_SWARMMODE=true
-      - TRAEFIK_PROVIDERS_DOCKER_WATCH=true
-      # Others
-      - LINODE_TOKEN_FILE=/run/secrets/linode-token
-    deploy:
-      placement:
-        constraints:
-          # Make the traefik service run only on the node with this label
-          # as the node with it has the volume for the certificates
-          - node.labels.node-has-traefik == true
+    labels:
+      # Enable Traefik for this service
+      traefik.enable: true
+      traefik.constraint-label: traefik-public
 
-      labels:
-        # Enable Traefik for this service
-        - traefik.enable=true
-        - traefik.constraint-label=traefik-public
+      # Setting middlewares
+      traefik.http.middlewares.internal-ips.ipwhitelist.sourceRange: 127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
+      traefik.http.middlewares.compress.compress: true
 
-        # Setting middlewares
-        # - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME:?Variable not set}:${HASHED_PASSWORD:?Variable not set}
-        - traefik.http.middlewares.internal-ips.ipwhitelist.sourceRange=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
-        - traefik.http.middlewares.compress.compress=true
+      # Setup Traefik API anf Web UI/Dashboard using the special Traefik service api@internal
+      traefik.http.routers.traefik-api.entrypoints: websecure
+      traefik.http.routers.traefik-api.rule: Host(`traefik.${DOMAIN:?Variable not set}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`))
+      traefik.http.routers.traefik-api.middlewares: internal-ips@docker,compress@docker
+      traefik.http.routers.traefik-api.service: api@internal
+      traefik.http.routers.traefik-api.priority: 10
 
-        # Setup Traefik API anf Web UI/Dashboard using the special Traefik service api@internal
-        - traefik.http.routers.traefik-api.entrypoints=websecure
-        - traefik.http.routers.traefik-api.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`))
-        - traefik.http.routers.traefik-api.middlewares=internal-ips@docker,compress@docker
-        - traefik.http.routers.traefik-api.service=api@internal
-        - traefik.http.routers.traefik-api.priority=10
-        - traefik.http.services.traefik-api-svc.loadbalancer.server.port=8080
+      # # If use manual routing for Traefik Ping service, please uncomment this blow block
+      # traefik.http.routers.traefik-ping.entrypoints: websecure
+      # traefik.http.routers.traefik-ping.rule: Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/ping`)
+      # # traefik.http.routers.traefik-ping.middlewares: internal-ips@docker
+      # traefik.http.routers.traefik-ping.service: ping@internal
+      # traefik.http.routers.traefik-ping.priority: 15
 
-        # # Setup Traefik ping using the special Traefik service ping@internal
-        # - traefik.http.routers.traefik-ping.entrypoints=websecure
-        # - traefik.http.routers.traefik-ping.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/ping`)
-        # - traefik.http.routers.traefik-ping.middlewares=internal-ips@docker
-        # - traefik.http.routers.traefik-ping.service=ping@internal
-        # - traefik.http.routers.traefik-ping.priority=15
-        # - traefik.http.services.traefik-ping.loadbalancer.server.port=8080
-
-        # # Handle metrics requests
-        # - traefik.http.routers.traefik-metrics.entrypoints=websecure
-        # - traefik.http.routers.traefik-metrics.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/metrics`)
-        # - traefik.http.routers.traefik-metrics.middlewares=internal-ips@docker
-        # - traefik.http.routers.traefik-metrics.service=prometheus@internal
-        # - traefik.http.routers.traefik-metrics.priority=20
-        # - traefik.http.services.traefik-metrics.loadbalancer.server.port=8080
+      # # If use manual routing for Traefik Metrics service, please uncomment this blow block
+      # traefik.http.routers.traefik-metrics.entrypoints: websecure
+      # traefik.http.routers.traefik-metrics.rule: Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/metrics`)
+      # # traefik.http.routers.traefik-metrics.middlewares: internal-ips@docker
+      # traefik.http.routers.traefik-metrics.service: prometheus@internal
+      # traefik.http.routers.traefik-metrics.priority: 20
 
     networks:
       # Use the public network created to be shared between Traefik and
@@ -171,18 +140,12 @@ services:
 
     ports:
       # Listen on port 80, default for HTTP, necessary to redirect to HTTPS
-      - target: 80
-        published: 80
-        mode: host
+      - 80:80
 
       # Listen on port 443, default for HTTPS
-      - target: 443
-        published: 443
-        mode: host
+      - 443:443
 
-    secrets:
-      - linode-token
-
+    restart: unless-stopped
     volumes:
       - certs-vol:/certificates
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -190,7 +153,23 @@ services:
     healthcheck:
       test: ["CMD", "traefik", "healthcheck"]
       # test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "--header='Host: traefik.${DOMAIN}'", "https://localhost/ping"]
-      start_period: 10s
-      interval: 3s
+      start_period: 20s
+      interval: 5s
       timeout: 5s
       retries: 5
+
+
+  hub-agent:
+    image: ghcr.io/traefik/hub-agent-traefik:v0.7.2
+    command:
+      - run
+      - --hub.token=${HUB_TOKEN}
+      - --auth-server.advertise-url=http://hub-agent
+      - --traefik.host=traefik
+      - --traefik.tls.insecure=true
+    container_name: hub-agent
+    depends_on:
+      - traefik
+    restart: "on-failure"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

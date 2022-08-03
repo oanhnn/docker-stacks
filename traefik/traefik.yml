@@ -1,0 +1,82 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: true
+
+api:
+  insecure: false
+  dashboard: true
+  debug: false
+
+entryPoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          permanent: true
+          priority: 10
+          scheme: https
+          to: websecure
+  websecure:
+    address: :443
+    http:
+      middlewares:
+        - compress@file
+      tls:
+        certResolver: le
+        domains:
+          - main: ${DOMAIN}
+            sans:
+              - "*.${DOMAIN}"
+
+accessLog: {}
+
+log:
+  level: INFO
+
+ping:
+  entryPoint: websecure
+  manualRouting: true
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+    entryPoint: websecure
+    manualRouting: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: ${EMAIL}
+      caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      storage: RSA4096
+      keyType: /certificates/acme.json
+      # dnsChallenge:
+      #   provider: foobar
+      #   delayBeforeCheck: 42s
+      #   resolvers:
+      #     - foobar
+      #     - foobar
+      #   disablePropagationCheck: true
+      # httpChallenge:
+      #   entryPoint: foobar
+      tlsChallenge: {}
+
+hub:
+  tls:
+    insecure: true
+
+providers:
+  docker:
+    constraints: Label(`traefik.constraint-label`, `traefik-public`)
+    endpoint: unix:///var/run/docker.sock
+    exposedByDefault: true
+    network: reverse-proxy
+    watch: true
+  # file:
+  #   directory: foobar
+  #   watch: true
+  #   filename: foobar
+  #   debugLogGeneratedTemplate: true
