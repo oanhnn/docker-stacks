@@ -1,0 +1,124 @@
+# =========================================
+# MinIO with distributed mode
+# Verion latest
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+# Registration networks
+networks:
+  minio-net:
+    name: minio-net
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+## By default this config uses default local driver,
+## For custom volumes replace with volume driver configuration.
+volumes:
+  minio1-vol1:
+    name: minio1-vol1
+    external: true
+  minio1-vol2:
+    name: minio1-vol2
+    external: true
+  minio2-vol1:
+    name: minio2-vol1
+    external: true
+  minio2-vol2:
+    name: minio2-vol2
+    external: true
+  minio3-vol1:
+    name: minio3-vol1
+    external: true
+  minio3-vol2:
+    name: minio3-vol2
+    external: true
+  minio4-vol1:
+    name: minio4-vol1
+    external: true
+  minio4-vol2:
+    name: minio4-vol2
+    external: true
+
+# Template for minio service
+x-minio: &minio-service
+  image: quay.io/minio/minio:latest
+  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
+  environment:
+    - MINIO_ROOT_USER=${MINIO_ROOT_USER:?Variable not set}
+    - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?Variable not set}
+  networks:
+    - minio-net
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    start_period: 20s
+    interval: 5s
+    timeout: 5s
+    retries: 5
+
+# Starts 4 docker containers running minio server instances.
+# Using nginx reverse proxy, load balancing, you can access it
+services:
+  minio1:
+    <<: *minio-service
+    hostname: minio1
+    volumes:
+      - minio1-vol1:/data1
+      - minio1-vol2:/data2
+
+  minio2:
+    <<: *minio-service
+    hostname: minio2
+    volumes:
+      - minio2-vol1:/data1
+      - minio2-vol2:/data2
+
+  minio3:
+    <<: *minio-service
+    hostname: minio3
+    volumes:
+      - minio3-vol1:/data1
+      - minio3-vol2:/data2
+
+  minio4:
+    <<: *minio-service
+    hostname: minio4
+    volumes:
+      - minio4-vol1:/data1
+      - minio4-vol2:/data2
+
+  nginx:
+    image: nginx:stable-alpine
+    depends_on:
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+    hostname: nginx
+    labels:
+      # Labels for Traefik proxy
+      - traefik.enable=true
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.minio.entrypoints=websecure
+      - traefik.http.routers.minio.rule=Host(`s3.example.com`)
+      - traefik.http.routers.minio.service=minio
+      - traefik.http.routers.minio.priority=21
+      - traefik.http.services.minio.loadbalancer.server.port=9000
+      - traefik.http.routers.minio-console.entrypoints=websecure
+      - traefik.http.routers.minio-console.rule=Host(`s3.example.com`)
+      - traefik.http.routers.minio-console.service=minio-console
+      - traefik.http.routers.minio-console.priority=22
+      - traefik.http.services.minio-console.loadbalancer.server.port=9001
+    networks:
+      - minio-net
+      - proxy-net
+    # ports:
+    #   - 9000:9000
+    #   - 9001:9001
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
