@@ -1,0 +1,40 @@
+# =========================================
+# Umami
+# Umami is an open source, privacy-focused alternative to Google Analytics
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    environment:
+      DATABASE_URL: postgresql://umami:umami@db:5432/umami
+      DATABASE_TYPE: postgresql
+      HASH_SALT: replace-me-with-a-random-string
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.umami.entrypoints=websecure
+    #   - traefik.http.routers.umami.rule=Host(`dba.example.com`)
+    #   - traefik.http.routers.umami.middlewares=internal-ips,admin-auth
+    #   - traefik.http.routers.umami.service=umami
+    #   - traefik.http.routers.umami.priority=10
+    #   - traefik.http.services.umami.loadbalancer.server.port=8080
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 3000:3000
+    restart: unless-stopped
