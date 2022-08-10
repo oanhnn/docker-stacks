@@ -1,19 +1,16 @@
 # =========================================
 # Gitlab
-# https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-swarm-mode
+# https://docs.gitlab.com/ee/install/docker.html
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
-
-version: "3.5"
 
 configs:
   gitlab-config:
     name: gitlab-config
-    file: ./gitlab.rb.gtpl
-    template_driver: golang
+    external: true
 
 networks:
   database-net:
@@ -45,17 +42,31 @@ services:
     configs:
       - source: gitlab-config
         target: /gitlab.rb
+    container_name: gitlab
     environment:
       - GITLAB_OMNIBUS_CONFIG=from_file('/gitlab.rb')
       - GITLAB_DOMAIN=gitlab.example.com
       - GITLAB_ROOT_PASSWORD_FILE=/run/secrets/gitlab-root-password
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.gitlab.entrypoints=websecure
+    #   - traefik.http.routers.gitlab.rule=Host(`gitlab.example.com`)
+    #   - traefik.http.routers.gitlab.service=gitlab
+    #   - traefik.http.routers.gitlab.priority=30
+    #   - traefik.http.services.gitlab.loadbalancer.server.port=80
+    #   - traefik.tcp.routers.gitlab.entrypoints=ssh
+    #   - traefik.tcp.routers.gitlab.rule=HostSNI(`gitlab.example.com`)
+    #   - traefik.tcp.routers.gitlab.service=gitlab
+    #   - traefik.tcp.routers.gitlab.priority=30
+    #   - traefik.tcp.services.gitlab.loadbalancer.server.port=22
     networks:
       - database-net
       - proxy-net
     # ports:
     #   - 22:22
     #   - 80:80
-    #   - 443:443
     restart: unless-stopped
     secrets:
       - gitlab-root-password

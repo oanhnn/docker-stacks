@@ -2,23 +2,22 @@
 # Gitlab Runner
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
 
-version: "3.5"
-
-volumes:
+configs:
   gitlab-runner-config:
     name: gitlab-runner-config
     external: true
 
 services:
   gitlab-runner:
-    image: gitlab/gitlab-runner:alpine
-    environment:
-      - TZ=UTC
+    image: gitlab/gitlab-runner:latest
+    configs:
+      - source: gitlab-runner-config
+        target: /etc/gitlab-runner/config.toml
+    container_name: gitlab-runner
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - gitlab-runner-config:/etc/gitlab-runner
