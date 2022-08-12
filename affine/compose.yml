@@ -1,0 +1,32 @@
+# =========================================
+# AFFiNE
+# https://docs.affine.pro/affine/starting-point/install-affine/docker
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+services:
+  affine:
+    image: ghcr.io/toeverything/affine:nightly-latest
+    container_name: affine
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.affine.entrypoints=websecure
+    #   - traefik.http.routers.affine.rule=Host(`affine.example.com`)
+    #   - traefik.http.routers.affine.service=affine
+    #   - traefik.http.routers.affine.priority=40
+    #   - traefik.http.services.affine.loadbalancer.server.port=3000
+    networks:
+      - proxy-net
+    # ports:
+    #   - 3000:3000
+    restart: unless-stopped
