@@ -1,14 +1,11 @@
 # =========================================
 # Ghost
-# Verion latest
+#
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
 
-version: "3.5"
-
-# Networks
 networks:
   mysql-net:
     name: database-net
@@ -17,7 +14,11 @@ networks:
     name: reverse-proxy
     external: true
 
-# Services
+volumes:
+  ghost-vol:
+    name: ghost-vol
+    external: true
+
 services:
   ghost:
     image: ghost
@@ -42,5 +43,5 @@ services:
     ports:
       - 2368:2368
     restart: unless-stopped
-
-
+    volumes:
+      - ghost-vol:/var/lib/ghost/content
