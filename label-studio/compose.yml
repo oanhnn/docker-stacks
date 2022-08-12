@@ -1,0 +1,55 @@
+# =========================================
+# Label Studio
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  labelstd-vol:
+    name: label-studio-vol
+    external: true
+
+services:
+  labelstd:
+    image: heartexlabs/label-studio:latest
+    command:
+      - /label-studio/deploy/wait-for-postgres.sh
+      - bash
+      - /label-studio/deploy/start_label_studio.sh
+
+    environment:
+      - DJANGO_DB=default
+      - POSTGRE_NAME=postgres
+      - POSTGRE_USER=postgres
+      - POSTGRE_PASSWORD=
+      - POSTGRE_PORT=5432
+      - POSTGRE_HOST=db
+      - LABEL_STUDIO_HOST=${LABEL_STUDIO_HOST:-""}
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.labelstd.entrypoints=websecure
+    #   - traefik.http.routers.labelstd.rule=Host(`labelstd.example.com`)
+    #   - traefik.http.routers.labelstd.middlewares=internal-ips,admin-auth
+    #   - traefik.http.routers.labelstd.service=labelstd
+    #   - traefik.http.routers.labelstd.priority=18
+    #   - traefik.http.services.labelstd.loadbalancer.server.port=8080
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 8080:8080
+    restart: unless-stopped
+    volumes:
+      - labelstd-vol:/label-studio/data:rw
