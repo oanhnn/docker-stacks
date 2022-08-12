@@ -1,0 +1,41 @@
+networks:
+  proxy-net: {}
+  redis-net: {}
+  mysql-net: {}
+
+services:
+  soketi:
+    image: quay.io/soketi/soketi:1.0-16-distroless
+    container_name: soketi
+    environment:
+      - SOKETI_DEBUG=1
+      - SOKETI_DB_REDIS_HOST=redis
+      - SOKETI_DB_REDIS_PORT=6379
+      - SOKETI_DB_REDIS_DB=0
+      # - SOKETI_DB_REDIS_USERNAME
+      # - SOKETI_DB_REDIS_PASSWORD
+      - SOKETI_DB_REDIS_KEY_PREFIX=soketi
+      - SOKETI_DB_MYSQL_HOST=mysql
+      - SOKETI_DB_MYSQL_PORT=3306
+      - SOKETI_DB_MYSQL_USERNAME=root
+      - SOKETI_DB_MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - SOKETI_DB_MYSQL_DATABASE=soketidb
+      - SOKETI_DB_POOLING_ENABLED=true
+      - SOKETI_DB_POOLING_MIN=0
+      - SOKETI_DB_POOLING_MAX=10
+      - SOKETI_ADAPTER_DRIVER=redis
+      - SOKETI_APP_MANAGER_DRIVER=mysql
+      - SOKETI_APP_MANAGER_MYSQL_TABLE=apps
+      - SOKETI_APP_MANAGER_MYSQL_VERSION=8.0
+      - SOKETI_APP_MANAGER_MYSQL_USE_V2=true
+      - SOKETI_RATE_LIMITER_DRIVER=redis
+      - SOKETI_QUEUE_DRIVER=redis
+      - SOKETI_QUEUE_REDIS_CONCURRENCY=1
+      - SOKETI_CACHE_DRIVER=redis
+      - SOKETI_METRICS_ENABLED=1
+    networks:
+      - redis-net
+      - mysql-net
+      - proxy-net
+    restart: unless-stopped
+
