@@ -47,18 +47,21 @@ volumes:
 services:
   mattermost:
     ## This will be 'mattermost-enterprise-edition' or 'mattermost-team-edition' based on the version of Mattermost you're installing.
-    image: mattermost/mattermost-team-edition:7.0
+    image: mattermost/mattermost-team-edition:7.1
     environment:
-      # timezone inside container
+      # Timezone inside the container.
       - TZ=UTC
-      # necessary Mattermost options/variables (see env.example)
+
+      # Service site URL
+      - MM_SERVICESETTINGS_SITEURL=https://chat.example.com
+
+      # Database settings
       - MM_SQLSETTINGS_DRIVERNAME=postgres
       - MM_SQLSETTINGS_DATASOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable&connect_timeout=10
-      # necessary for bleve
+
+      # Bleve settings
       - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
-      # additional settings
-      - MM_SERVICESETTINGS_SITEURL=https://chat.example.com
-    # # Labels for Traefik proxy
+
     # labels:
     #   - traefik.enable=true
     #   - traefik.constraint-label=traefik-public
@@ -72,7 +75,6 @@ services:
     networks:
       - database-net
       - proxy-net
-    # # Ports mapping
     # ports:
     #   - 8065:8065
     pids_limit: 200
