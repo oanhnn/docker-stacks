@@ -1,0 +1,28 @@
+# =========================================
+# ZincSearch
+#
+# https://docs.zincsearch.com/04_installation/
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+services:
+  zinc:
+    image: public.ecr.aws/h9e2j3o7/zinc:latest
+    container_name: zinc
+    environment:
+      DATA_PATH: /data
+      ZINC_FIRST_ADMIN_USER: admin
+      ZINC_FIRST_ADMIN_PASSWORD: Complexpass#123
+    ports:
+      - "40804080"
+    restart: unless-stopped
+    volumes:
+      - zinc-vol:/data
+
+volumes:
+  zinc-vol:
+    name: zinc-vol
+    external: true
