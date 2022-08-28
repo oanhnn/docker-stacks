@@ -1,0 +1,46 @@
+# =========================================
+# Metabase
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+# Networks
+networks:
+  postgres-net:
+    name: database-net
+    external: true
+
+# Secrets
+secrets:
+  postgres-dbname:
+    external: true
+  postgres-username:
+    external: true
+  postgres-password:
+    external: true
+
+# Services
+services:
+  metabase:
+    image: metabase/metabase
+    environment:
+      - JAVA_TIMEZONE=Asia/Ho_Chi_Minh
+      - MB_DB_TYPE=postgres
+      - MB_DB_HOST=postgres
+      - MB_DB_PORT=5432
+      - MB_DB_DBNAME=/run/secrets/db_dbname
+      - MB_DB_USER=/run/secrets/db_username
+      - MB_DB_PASS=/run/secrets/db_password
+    networks:
+      - postgres-net
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    secrets:
+      - postgres-dbname
+      - postgres-username
+      - postgres-password
+    volumes:
+      - /dev/urandom:/dev/random:ro
