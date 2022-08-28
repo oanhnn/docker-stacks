@@ -4,11 +4,9 @@
 # https://docs.meilisearch.com/learn/getting_started/installation.html
 #
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
-
-version: "3.5"
 
 networks:
   meilisearch-net:
@@ -27,7 +25,7 @@ services:
       - MEILI_ENV=production
       - MEILI_DB_PATH=/data.ms
       - MEILI_HTTP_ADDR=0.0.0.0:7700
-      - MEILI_MASTER_KEY=secret
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
       - MEILI_NO_SENTRY=true
     networks:
       - meilisearch-net
