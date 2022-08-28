@@ -1,0 +1,42 @@
+# =========================================
+# Nginx proxy manager
+#
+# Requiments:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  proxy-data:
+    name: proxy-data
+    external: true
+  proxy-ssl:
+    name: proxy-ssl
+    external: true
+
+services:
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    environment:
+      - DISABLE_IPV6=true
+      - DB_SQLITE_FILE=/data/database.sqlite
+      # - X_FRAME_OPTIONS: "sameorigin"
+    networks:
+      - proxy-net
+    ports:
+      - "80:80"   # HTTP
+      - "443:443" # HTTPS
+      - "81:81"   # Web admin
+    restart: unless-stopped
+    volumes:
+      - proxy-data:/data
+      - proxy-ssl:/etc/letsencrypt
+    healthcheck:
+      test: ["CMD", "/bin/check-health"]
+      interval: 10s
+      timeout: 3s
