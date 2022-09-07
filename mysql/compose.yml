@@ -52,8 +52,8 @@ services:
     volumes:
       - mysql-vol:/var/lib/mysql
     healthcheck:
-      interval: 5s
-      retries: 5
+      test: ["CMD-SHELL", "MYSQL_PWD=`cat $$MYSQL_ROOT_PASSWORD_FILE` mysqladmin ping -u root -h localhost -s"]
       start_period: 20s
-      test: [CMD, "mysqladmin", "-s", "-p$$MYSQL_ROOT_PASSWORD", "ping"]
-      timeout: 5s
+      retries: 3
+      timeout: 3s
+      interval: 10s

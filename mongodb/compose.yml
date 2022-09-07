@@ -1,5 +1,10 @@
-
-version: "3.5"
+# =========================================
+# MongoDB
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
 
 networks:
   database-net:
@@ -21,14 +26,20 @@ volumes:
 
 services:
   mongodb:
-    image: mongo
-    secrets:
-      - mongodb-username
-      - mongodb-password
+    image: mongo:4
     environment:
       - MONGO_INITDB_ROOT_USERNAME_FILE=/run/secrets/mongodb-username
       - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/mongodb-password
     ports:
       - 27017:27017
+    secrets:
+      - mongodb-username
+      - mongodb-password
     volumes:
       - mongodb-vol:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongo localhost:27017/test --quiet"]
+      start_period: 20s
+      retries: 3
+      timeout: 3s
+      interval: 10s
