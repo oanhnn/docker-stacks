@@ -1,0 +1,39 @@
+# =========================================
+# WatchTower
+#
+# If you use rolling image tags and feel lucky watchtower can automatically pull new images and
+# instantiate containers from it.
+# Please keep in mind watchtower will have access on the docker socket. This can be a security risk.
+#
+# https://containrrr.dev/watchtower/
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+services:
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    environment:
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      # DOCKER_TLS_VERIFY: true
+      # DOCKER_CERT_PATH: /etc/ssl/docker
+      WATCHTOWER_NOTIFICATIONS: "slack email"
+      WATCHTOWER_NOTIFICATION_EMAIL_FROM: "no-reply@${DOMAIN}"
+      WATCHTOWER_NOTIFICATION_EMAIL_TO: "it@${DOMAIN}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER: ${SMTP_HOST}
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT: ${SMTP_PORT}
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER: ${SMTP_USER}
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD: ${SMTP_PASSWORD}
+      WATCHTOWER_NOTIFICATION_EMAIL_DELAY: 2 # 2 seconds
+      WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG: "[Update]"
+      WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL: ${SLACK_WEBHOOK_URL}
+      WATCHTOWER_NOTIFICATION_SLACK_IDENTIFIER: "watchtower"
+      WATCHTOWER_NOTIFICATION_SLACK_CHANNEL: "#update"
+      WATCHTOWER_HTTP_API_METRICS: true
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - $DOCKER_CERT_PATH:/etc/ssl/docker
