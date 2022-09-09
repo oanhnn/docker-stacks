@@ -1,0 +1,58 @@
+# =========================================
+# BookStack
+#
+# https://www.bookstackapp.com/
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+secrets:
+  mysql-database:
+    name: mysql-database
+    external: true
+  mysql-user:
+    name: mysql-user
+    external: true
+  mysql-password:
+    name: mysql-password
+    external: true
+
+volumes:
+  bookstack-vol:
+    name: bookstack-vol
+    external: true
+
+services:
+  bookstack:
+    image: ghcr.io/linuxserver/bookstack
+    container_name: bookstack
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=https://books.example.com
+      - DB_HOST=mysql
+      - FILE__DB_USER=/run/secrets/mysql-user
+      - FILE__DB_PASS=/run/secrets/mysql-password
+      - FILE__DB_DATABASE=/run/secrets/mysql-database
+    networks:
+      - database-net
+      - proxy-net
+    ports:
+      - 6875:80
+    secrets:
+      - mysql-database
+      - mysql-user
+      - mysql-password
+    restart: unless-stopped
+    volumes:
+      - bookstack-vol:/config
