@@ -1,12 +1,10 @@
 # =========================================
 # Redis
-# Verion 6-alpine
+#
 # Requires:
-# - Docker Engine 17.12.0+
-# - Docker Compose 1.18.0+
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
 # =========================================
-
-version: "3.5"
 
 networks:
   redis-net:
@@ -21,7 +19,6 @@ volumes:
 services:
   redis:
     image: redis:6-alpine
-    command: redis-server --appendonly yes
     networks:
       - redis-net
     # ports:
@@ -30,8 +27,8 @@ services:
     volumes:
       - redis-vol:/data
     healthcheck:
-      interval: 3s
-      retries: 5
-      start_period: 15s
-      test: PING=$$(redis-cli -h `hostname -i` -p 6379 ping) && [ "$$PING" == "PONG" ]
-      timeout: 3s
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 10s
+      retries: 3
+      timeout: 5s
+      interval: 10s
