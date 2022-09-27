@@ -1,0 +1,70 @@
+# =========================================
+# SonarCube
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+volumes:
+  sonarqube-data:
+    name: sonarqube-data-vol
+    external: true
+  sonarqube-exts:
+    name: sonarqube-exts-vol
+    external: true
+  sonarqube-logs:
+    name: sonarqube-logs-vol
+    external: true
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+services:
+  sonarqube:
+    image: sonarqube:community
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://postgres:5432/sonardb?currentSchema=my_schema
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+      - SONAR_JDBC_MAXACTIVE=60
+      - SONAR_JDBC_MAXIDLE=5
+      - SONAR_WEB_HOST=0.0.0.0
+      - SONAR_WEB_PORT=9000
+      - SONAR_WEB_HTTP_MAXTHREADS=50
+      - SONAR_WEB_HTTP_MINTHREADS=5
+      - SONAR_WEB_HTTP_ACCEPTCOUNT=25
+      - SONAR_WEB_HTTP_KEEPALIVETIMEOUT=60000
+      - SONAR_LOG_LEVEL=INFO
+      - SONAR_TELEMETRY_ENABLE=false
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.sonarqube.entrypoints=websecure
+    #   - traefik.http.routers.sonarqube.rule=Host(`sonar.example.com`)
+    #   - traefik.http.routers.sonarqube.middlewares=internal-ips,admin-auth
+    #   - traefik.http.routers.sonarqube.service=sonarqube
+    #   - traefik.http.routers.sonarqube.priority=20
+    #   - traefik.http.services.sonarqube.loadbalancer.server.port=9000
+    networks:
+      - database-net
+      - proxy-net
+    # ports:
+    #   - 9000:9000
+    restart: unless-stopped
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-exts:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    healthcheck:
+      interval: 5s
+      retries: 5
+      start_period: 20s
+      test: ['CMD', 'wget', '--no-verbose', '--spider',  'http://localhost:9000']
+      timeout: 5s
