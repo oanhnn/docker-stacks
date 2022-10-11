@@ -1,0 +1,93 @@
+# =========================================
+# CrateDB
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+services:
+  cratedb01:
+    image: crate:latest
+    command: [
+      "crate",
+      "-Ccluster.name=crate-docker-cluster",
+      "-Cnode.name=cratedb01",
+      "-Cnode.data=true",
+      "-Cnetwork.host=_site_",
+      "-Cdiscovery.seed_hosts=cratedb02,cratedb03",
+      "-Ccluster.initial_master_nodes=cratedb01,cratedb02,cratedb03",
+      "-Cgateway.expected_data_nodes=3",
+      "-Cgateway.recover_after_data_nodes=2",
+    ]
+    environment:
+      - CRATE_HEAP_SIZE=2g
+    networks:
+      - crate-net
+    ports:
+      - "4201:4200"
+    restart: unless-stopped
+    volumes:
+      - crate-vol01:/data
+
+  cratedb02:
+    image: crate:latest
+    command: [
+      "crate",
+      "-Ccluster.name=crate-docker-cluster",
+      "-Cnode.name=cratedb02",
+      "-Cnode.data=true",
+      "-Cnetwork.host=_site_",
+      "-Cdiscovery.seed_hosts=cratedb01,cratedb03",
+      "-Ccluster.initial_master_nodes=cratedb01,cratedb02,cratedb03",
+      "-Cgateway.expected_data_nodes=3",
+      "-Cgateway.recover_after_data_nodes=2",
+    ]
+    environment:
+      - CRATE_HEAP_SIZE=2g
+    networks:
+      - crate-net
+    ports:
+      - "4202:4200"
+    restart: unless-stopped
+    volumes:
+      - crate-vol02:/data
+
+  cratedb03:
+    image: crate:latest
+    command: [
+      "crate",
+      "-Ccluster.name=crate-docker-cluster",
+      "-Cnode.name=cratedb03",
+      "-Cnode.data=true",
+      "-Cnetwork.host=_site_",
+      "-Cdiscovery.seed_hosts=cratedb01,cratedb02",
+      "-Ccluster.initial_master_nodes=cratedb01,cratedb02,cratedb03",
+      "-Cgateway.expected_data_nodes=3",
+      "-Cgateway.recover_after_data_nodes=2",
+    ]
+    environment:
+      - CRATE_HEAP_SIZE=2g
+    networks:
+      - crate-net
+    ports:
+      - "4203:4200"
+    restart: unless-stopped
+    volumes:
+      - crate-vol03:/data
+
+networks:
+  crate-net:
+    name: database-net
+    external: true
+
+volumes:
+  crate-vol01:
+    name: crate-vol01
+    external: true
+  crate-vol02:
+    name: crate-vol02
+    external: true
+  crate-vol03:
+    name: crate-vol03
+    external: true
