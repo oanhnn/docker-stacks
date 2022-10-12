@@ -1,0 +1,71 @@
+# =========================================
+# Apache CouchDB
+# CouchDB is a database that completely embraces the web.
+# https://github.com/apache/couchdb-docker
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+services:
+  couchdb01:
+    image: couchdb:3
+    container_name: couchdb01
+    environment:
+      COUCHDB_USER:     ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      COUCHDB_SECRET:   ${COUCHDB_SECRET}
+      NODENAME:         couchdb01
+    networks:
+      - couchdb-net
+    restart: unless-stopped
+    volumes:
+      - couchdb01-vol:/opt/couchdb/data
+
+  couchdb02:
+    extends:
+      service: couchdb01
+    container_name: couchdb02
+    environment:
+      NODENAME: couchdb02
+    volumes:
+      - couchdb02-vol:/opt/couchdb/data
+
+  couchdb03:
+    extends:
+      service: couchdb01
+    container_name: couchdb03
+    environment:
+      NODENAME: couchdb03
+    volumes:
+      - couchdb03-vol:/opt/couchdb/data
+
+  couchdb-cluster-setup:
+    image: curlimages/curl
+    command: sh
+    depends_on:
+      - couchdb01
+      - couchdb02
+      - couchdb03
+    environment:
+      COUCHDB_USER:     ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      COUCHDB_SECRET:   ${COUCHDB_SECRET}
+      COUCHDB_CLUSTER:  couchdb01,couchdb02,couchdb03
+    networks:
+      - couchdb-net
+    volumes:
+      - ./cluster-setup.sh:/cluster-setup.sh
+
+networks:
+  couchdb-net:
+    name: database-net
+
+volumes:
+  couchdb01-vol:
+    name: couchdb01-vol
+  couchdb02-vol:
+    name: couchdb02-vol
+  couchdb03-vol:
+    name: couchdb03-vol
