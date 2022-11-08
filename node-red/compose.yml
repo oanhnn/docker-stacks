@@ -1,0 +1,30 @@
+# =========================================
+# Node Red
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  node-red-net:
+    name: node-red-net
+    external: true
+
+volumes:
+  node-red-vol:
+    name: node-red-vol
+    external: true
+
+services:
+  node-red:
+    image: nodered/node-red:latest
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - node-red-net
+    ports:
+      - "1880:1880"
+    restart: unless-stopped
+    volumes:
+      - node-red-vol:/data

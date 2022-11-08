@@ -1,0 +1,50 @@
+# =========================================
+# Rust Desk
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  rustdesk-net:
+    name: rustdesk-net
+
+volumes:
+  hbbs-vol:
+    name: rustdesk-hbbs-vol
+    external: true
+  hbbr-vol:
+    name: rustdesk-hbbr-vol
+    external: true
+
+services:
+  hbbs:
+    image: rustdesk/rustdesk-server:latest # Using `latest-arm64v8` tag for ARM64v8
+    command: hbbs -r hbbr:21117
+    container_name: hbbs
+    depends_on:
+      - hbbr
+    networks:
+      - rustdesk-net
+    ports:
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21118:21118
+    restart: unless-stopped
+    volumes:
+      - hbbs-vol:/root
+
+  hbbr:
+    image: rustdesk/rustdesk-server:latest # Using `latest-arm64v8` tag for ARM64v8
+    command: hbbr
+    container_name: hbbr
+    networks:
+      - rustdesk-net
+    ports:
+      - 21117:21117
+      - 21119:21119
+    restart: unless-stopped
+    volumes:
+      - hbbr-vol:/root
