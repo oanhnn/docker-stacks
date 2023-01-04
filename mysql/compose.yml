@@ -12,20 +12,6 @@ networks:
     name: database-net
     external: true
 
-secrets:
-  mysql-root-password:
-    name: mysql-root-password
-    external: true
-  mysql-database:
-    name: mysql-database
-    external: true
-  mysql-user:
-    name: mysql-user
-    external: true
-  mysql-password:
-    name: mysql-password
-    external: true
-
 volumes:
   mysql-vol:
     name: mysql-vol
@@ -35,24 +21,19 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql-root-password
-      - MYSQL_DATABASE_FILE=/run/secrets/mysql-database
-      - MYSQL_USER_FILE=/run/secrets/mysql-user
-      - MYSQL_PASSWORD_FILE=/run/secrets/mysql-password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     networks:
       - mysql-net
     # ports:
     #   - 3306:3306
     restart: unless-stopped
-    secrets:
-      - mysql-root-password
-      - mysql-database
-      - mysql-user
-      - mysql-password
     volumes:
       - mysql-vol:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "MYSQL_PWD=`cat $$MYSQL_ROOT_PASSWORD_FILE` mysqladmin ping -u root -h localhost -s"]
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -u root -h localhost -s"]
       start_period: 20s
       retries: 3
       timeout: 3s

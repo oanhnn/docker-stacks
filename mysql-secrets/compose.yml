@@ -1,0 +1,59 @@
+# =========================================
+# MySQL 8.0.x
+# https://hub.docker.com/_/mysql
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  mysql-net:
+    name: database-net
+    external: true
+
+secrets:
+  mysql-root-password:
+    name: mysql-root-password
+    external: true
+  mysql-database:
+    name: mysql-database
+    external: true
+  mysql-user:
+    name: mysql-user
+    external: true
+  mysql-password:
+    name: mysql-password
+    external: true
+
+volumes:
+  mysql-vol:
+    name: mysql-vol
+    external: true
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql-root-password
+      - MYSQL_DATABASE_FILE=/run/secrets/mysql-database
+      - MYSQL_USER_FILE=/run/secrets/mysql-user
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql-password
+    networks:
+      - mysql-net
+    # ports:
+    #   - 3306:3306
+    restart: unless-stopped
+    secrets:
+      - mysql-root-password
+      - mysql-database
+      - mysql-user
+      - mysql-password
+    volumes:
+      - mysql-vol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=`cat $$MYSQL_ROOT_PASSWORD_FILE` mysqladmin ping -u root -h localhost -s"]
+      start_period: 20s
+      retries: 3
+      timeout: 3s
+      interval: 10s
