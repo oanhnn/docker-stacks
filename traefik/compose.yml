@@ -24,13 +24,13 @@ volumes:
 
 services:
   proxy:
-    image: traefik:v2.8
+    image: traefik:v2.9
     container_name: traefik
     environment:
       # Enable the Dashboard and API
       - TRAEFIK_API_DASHBOARd=true
       # - TRAEFIK_API_DEBUG=false
-      # - TRAEFIK_API_INSECURE=false
+      - TRAEFIK_API_INSECURE=false
 
       # Using Let's Encrypt as certificates resolver
       - TRAEFIK_CERTIFICATESRESOLVERS_le=true
@@ -66,11 +66,6 @@ services:
       # Misc
       - TRAEFIK_GLOBAL_CHECKNEWVERSION=false
       - TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE=false
-      - TRAEFIK_HUB=true
-      - TRAEFIK_EXPERIMENTAL_HUB=true
-      # - TRAEFIK_HUB_TLS_INSECURE=true
-      # - TRAEFIK_HUB_TLS_CA=
-      # - TRAEFIK_HUB_TLS_KEY=
 
       # Enable the access log, with HTTP requests
       # - TRAEFIK_ACCESSLOG=true
@@ -102,7 +97,7 @@ services:
       - TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT=false
       - TRAEFIK_PROVIDERS_DOCKER_NETWORK=reverse-proxy
       - TRAEFIK_PROVIDERS_DOCKER_CONSTRAINTS=Label(`traefik.constraint-label`, `traefik-public`)
-      - TRAEFIK_PROVIDERS_DOCKER_ENDPOINT=unix:///var/run/docker.sock
+      # - TRAEFIK_PROVIDERS_DOCKER_ENDPOINT=unix:///var/run/docker.sock
     labels:
       # Enable Traefik for this service
       traefik.enable: true
@@ -152,24 +147,7 @@ services:
 
     healthcheck:
       test: ["CMD", "traefik", "healthcheck"]
-      # test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "--header='Host: traefik.${DOMAIN}'", "https://localhost/ping"]
       start_period: 20s
       interval: 5s
       timeout: 5s
       retries: 5
-
-
-  hub-agent:
-    image: ghcr.io/traefik/hub-agent-traefik:v0.7.2
-    command:
-      - run
-      - --hub.token=${HUB_TOKEN}
-      - --auth-server.advertise-url=http://hub-agent
-      - --traefik.host=traefik
-      - --traefik.tls.insecure=true
-    container_name: hub-agent
-    depends_on:
-      - traefik
-    restart: "on-failure"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro

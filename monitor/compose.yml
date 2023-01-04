@@ -1,0 +1,192 @@
+# =========================================
+# Prometheus and Grafana
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  monitor-net:
+    name: monitor-net
+    external: true
+  proxy-net:
+    name: proxy-net
+    external: true
+
+volumes:
+  prometheus-vol:
+    name: prometheus-vol
+    external: true
+  alertmanager-vol:
+    name: alertmanager-vol
+    external: true
+  grafana-vol:
+    name: grafana-vol
+    external: true
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.41.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=200h
+    expose:
+      - 9090
+    labels:
+      - org.label-schema.group=monitoring
+      # Enable Traefik for this service
+      - traefik.enable=true
+      - traefik.constraint-label=public-service
+      - traefik.http.routers.prometheus.entrypoints=web
+      - traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN:?Variable not set}`)
+      # - traefik.http.routers.prometheus.middlewares=internal-ips@docker,compress@docker
+      # - traefik.http.routers.prometheus.service=prometheus@docker
+      - traefik.http.routers.prometheus.priority=11
+      # - traefik.http.services.prometheus.loadbalancer.server.port=9090
+    networks:
+      - proxy-net
+      - monitor-net
+    restart: unless-stopped
+    volumes:
+      - prometheus-vol:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    command:
+      - --config.file=/etc/alertmanager/config.yml
+      - --storage.path=/alertmanager
+    expose:
+      - 9093
+    labels:
+      - org.label-schema.group=monitoring
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    volumes:
+      - alertmanager-vol:/alertmanager
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+
+  pushgateway:
+    image: prom/pushgateway:v1.5.1
+    expose:
+      - 9091
+    labels:
+      - org.label-schema.group=monitoring
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:9.3.2
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    expose:
+      - 3000
+    labels:
+      - org.label-schema.group=monitoring
+      # Enable Traefik for this service
+      - traefik.enable=true
+      - traefik.constraint-label=public-service
+      - traefik.http.routers.grafana.entrypoints=web
+      - traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN:?Variable not set}`)
+      # - traefik.http.routers.grafana.middlewares=internal-ips@docker,compress@docker
+      # - traefik.http.routers.grafana.service=grafana@docker
+      - traefik.http.routers.grafana.priority=12
+      # - traefik.http.services.grafana.loadbalancer.server.port=3000
+    links:
+      - prometheus
+      - loki
+    networks:
+      - proxy-net
+    restart: unless-stopped
+    volumes:
+      - grafana-vol:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
+  loki:
+    image: grafana/loki:2.7.1
+    command: 
+     - --config.file=/etc/loki/loki.yml
+    expose:
+      - 3100
+    labels:
+      - org.label-schema.group=monitoring
+      # Enable Traefik for this service
+      - traefik.enable=true
+      - traefik.constraint-label=public-service
+      - traefik.http.routers.loki.entrypoints=web
+      - traefik.http.routers.loki.rule=Host(`loki.${DOMAIN:?Variable not set}`)
+      # - traefik.http.routers.loki.middlewares=internal-ips@docker,compress@docker
+      # - traefik.http.routers.loki.service=loki@docker
+      - traefik.http.routers.loki.priority=13
+      # - traefik.http.services.loki.loadbalancer.server.port=3100
+    links:
+      - alertmanager
+    networks:
+      - proxy-net
+      - monitor-net
+    restart: unless-stopped
+    volumes:
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+
+  promtail:
+    image: grafana/promtail:2.7.1
+    command: 
+      - -config.file=/etc/promtail/promtail.yml
+    expose:
+      - 9098
+    labels:
+      - org.label-schema.group=monitoring
+    links:
+      - loki
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+      - ./loki/promtail.yml:/etc/promtail/promtail.yml:ro
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    expose:
+      - 8080
+    labels:
+       - org.label-schema.group=monitoring
+    networks:
+      - monitor-net
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
+
+  node_exporter:
+    image: prom/node-exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    expose:
+      - 9100
+    labels:
+      - org.label-schema.group=monitoring
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
