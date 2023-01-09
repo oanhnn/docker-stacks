@@ -1,0 +1,82 @@
+# =========================================
+# Appsmith
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  # Network for connectting to databases
+  database-net:
+    name: database-net
+    external: true
+  # Network for connectting to proxy server
+  proxy-net:
+    name: reverse-proxy
+    external: true
+  # Network for connectting to Redis
+  redis-net:
+    name: redis-net
+    external: true
+
+volumes:
+  appsmith-vol:
+    name: appsmith-vol
+    external: true
+
+services:
+  appsmith:
+    image: index.docker.io/appsmith/appsmith-ce:latest
+    environment:
+      # https://docs.appsmith.com/setup/instance-configuration/email
+      - APPSMITH_MAIL_ENABLED=true
+      - APPSMITH_MAIL_FROM=YOUR_VERIFIED_EMAIL_ID
+      - APPSMITH_REPLY_TO=YOUR_VERIFIED_EMAIL_ID
+      - APPSMITH_MAIL_HOST=email-smtp.us-east-2.amazonaws.com
+      - APPSMITH_MAIL_PORT=587
+      - APPSMITH_MAIL_SMTP_TLS_ENABLED=true
+      - APPSMITH_MAIL_USERNAME=YOUR_SES_USER_NAME
+      - APPSMITH_MAIL_PASSWORD=YOUR_SES_PASSWORD
+      - APPSMITH_MAIL_SMTP_AUTH=true
+      # https://docs.appsmith.com/setup/instance-configuration/custom-mongodb-redis
+      - APPSMITH_MONGODB_URI=mongodb://mongo:27017/appsmith
+      - APPSMITH_REDIS_URL=redis://redis:6379/0
+      # https://docs.appsmith.com/setup/instance-configuration/disable-user-signup
+      - APPSMITH_SIGNUP_DISABLED=false
+      - APPSMITH_SIGNUP_ALLOWED_DOMAINS=example.com
+      - APPSMITH_ADMIN_EMAILS=you@example.com,me@example.com
+      # https://docs.appsmith.com/setup/instance-configuration/google-maps
+      - APPSMITH_GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY
+      # https://docs.appsmith.com/setup/instance-configuration/single-sign-on-sso/google-login
+      - APPSMITH_OAUTH2_GOOGLE_CLIENT_ID=YOUR_CLIENT_ID
+      - APPSMITH_OAUTH2_GOOGLE_CLIENT_SECRET=YOUR_CLIENT_SECRET
+    # labels:
+    #   # Labels for Traefik proxy
+    #   - traefik.enable=true
+    #   - traefik.constraint-label=traefik-public
+    #   - traefik.http.routers.appsmith.entrypoints=websecure
+    #   - traefik.http.routers.appsmith.rule=Host(`appsmith.example.com`)
+    #   - traefik.http.routers.appsmith.service=appsmith
+    #   - traefik.http.routers.appsmith.priority=15
+    #   - traefik.http.services.appsmith.loadbalancer.server.port=443
+    #   # Uncomment the lines below to enable auto-update
+    #   - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - database-net
+      - proxy-net
+      - redis-net
+    # ports:
+    #   - 80:80
+    #   - 443:443
+    restart: unless-stopped
+    volumes:
+      - appsmith-vol:/appsmith-stacks
+
+  # auto_update:
+  #   image: containrrr/watchtower:latest-dev
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   # Update check interval in seconds.
+  #   command: --schedule "0 0 * ? * *" --label-enable --cleanup
+  #   restart: unless-stopped
