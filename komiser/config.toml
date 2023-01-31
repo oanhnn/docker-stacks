@@ -1,0 +1,16 @@
+[[aws]]
+  name = "dev"
+  profile = "dev-account"
+  source = "CREDENTIALS_FILE"
+  path = "/etc/komiser/credentials.ini"
+
+# [[aws]]
+#   name = "staging"
+#   profile = "staging-account"
+#   source = "ENVIRONMENT_VARIABLES"
+
+[sqlite]
+  file = "komiser.db"
+
+[postgres]
+  uri = "postgres://postgres:komiser@localhost:5432/komiser?sslmode=disable"

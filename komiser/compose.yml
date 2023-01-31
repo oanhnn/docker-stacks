@@ -1,0 +1,35 @@
+# =========================================
+# Komiser 3.x
+# https://docs.komiser.io/docs/overview/introduction/getting-started
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  postgres-net:
+    name: database-net
+    external: true
+
+services:
+  komiser:
+    image: tailwarden/komiser:3.0.1
+    command: ["komiser", "start", "--config", "/etc/komiser/config.toml"]
+    container_name: komiser
+    environment:
+      - AWS_REGION=ap-southeast-1
+    networks:
+      - postgres-net
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    volumes:
+      - ./config.toml:/etc/komiser/config.toml:ro
+      - ./credentials.ini:/etc/komiser/credentials.ini:ro
+    # healthcheck:
+    #   test: ['CMD', 'curl', '-sf', 'http://localhost:3000/']
+    #   start_period: 20s
+    #   retries: 3
+    #   timeout: 3s
+    #   interval: 10s
