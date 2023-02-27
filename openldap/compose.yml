@@ -1,0 +1,64 @@
+# =========================================
+# OpenLDAP
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  openldap-net:
+    name: openldap-net
+    external: true
+
+volumes:
+  openldap-vol:
+    name: openldap-vol
+    external: true
+
+services:
+  ldap:
+    image: bitnami/openldap:latest
+    environment:
+      - LDAP_PORT_NUMBER=1389
+      - LDAP_ROOT=dc=example,dc=org
+      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ADMIN_PASSWORD=adminpassword
+      # - LDAP_ADMIN_PASSWORD_FILE
+      - LDAP_CONFIG_ADMIN_ENABLED=no
+      - LDAP_CONFIG_ADMIN_USERNAME=admin
+      - LDAP_CONFIG_ADMIN_PASSWORD=configpassword
+      # - LDAP_CONFIG_ADMIN_PASSWORD_FILE
+      - LDAP_USERS=user01,user02
+      - LDAP_PASSWORDS=bitnami1,bitnami2
+      - LDAP_USER_DC=users
+      - LDAP_GROUP=readers
+      - LDAP_ADD_SCHEMAS=yes
+      - LDAP_EXTRA_SCHEMAS=cosine,inetorgperson,nis
+      - LDAP_SKIP_DEFAULT_TREE=no
+      - LDAP_CUSTOM_LDIF_DIR=/ldifs
+      - LDAP_CUSTOM_SCHEMA_FILE=/schema/custom.ldif
+      - LDAP_CUSTOM_SCHEMA_DIR=/schemas
+      - LDAP_ULIMIT_NOFILES=1024
+      - LDAP_ALLOW_ANON_BINDING=yes
+      - LDAP_LOGLEVEL=256
+      - LDAP_ENABLE_TLS=no
+      - LDAP_LDAPS_PORT_NUMBER=1636
+      - LDAP_TLS_CERT_FILE=/bitnami/certs/openldap.crt
+      - LDAP_TLS_KEY_FILE=/bitnami/certs/openldap.key
+      - LDAP_TLS_CA_FILE=/bitnami/certs/openldapCA.crt
+      - LDAP_TLS_DH_PARAMS_FILE=/bitnami/certs/openldap.params
+    networks:
+      - openldap-net
+    ports:
+      - "1389:1389"
+      - "1636:1636"
+    restart: unless-stopped
+    volumes:
+      - openldap-vol:/bitnami/openldap
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+    #   start_period: 20s
+    #   retries: 3
+    #   timeout: 3s
+    #   interval: 10s
