@@ -8,39 +8,50 @@
 
 # Networks
 networks:
-  postgres-net:
+  database-net:
     name: database-net
     external: true
 
-# Secrets
-secrets:
-  postgres-dbname:
-    external: true
-  postgres-username:
-    external: true
-  postgres-password:
+# # Secrets
+# # https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker#use-docker-secrets-to-hide-sensitive-parameters
+# secrets:
+#   postgres-username:
+#     external: true
+#   postgres-password:
+#     external: true
+
+volumes:
+  postgres-vol:
+    name: postgres-vol
     external: true
 
 # Services
 services:
   metabase:
-    image: metabase/metabase
+    image: metabase/metabase:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       - JAVA_TIMEZONE=Asia/Ho_Chi_Minh
+      # - MB_DB_CONNECTION_URI=jdbc:postgresql://db:5432/metadb
       - MB_DB_TYPE=postgres
       - MB_DB_HOST=postgres
       - MB_DB_PORT=5432
-      - MB_DB_DBNAME=/run/secrets/db_dbname
-      - MB_DB_USER=/run/secrets/db_username
-      - MB_DB_PASS=/run/secrets/db_password
+      - MB_DB_DBNAME=metadb
+      - MB_DB_USER=${DB_USERNAME}
+      - MB_DB_PASS=${DB_PASSWORD}
+      # - MB_DB_USER_FILE=/run/secrets/db_username
+      # - MB_DB_PASS_FILE=/run/secrets/db_password
+      # - MB_EMAIL_SMTP_USERNAME=
+      # - MB_EMAIL_SMTP_PASSWORD=
     networks:
-      - postgres-net
+      - database-net
     ports:
       - 3000:3000
     restart: unless-stopped
-    secrets:
-      - postgres-dbname
-      - postgres-username
-      - postgres-password
+    # secrets:
+    #   - postgres-username
+    #   - postgres-password
     volumes:
       - /dev/urandom:/dev/random:ro
