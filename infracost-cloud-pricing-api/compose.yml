@@ -1,0 +1,42 @@
+networks:
+  database-net:
+    external: true
+    name: database-net
+
+services:
+  # The init container that loads the pricing data.
+  # The init container will take a few minutes and exit after the Docker compose logs show `Completed: loading data into DB.`
+  init_job:
+    image: infracost/cloud-pricing-api:latest # Latest stable release
+    command: ["npm", "run", "job:init"]
+    environment:
+      - INFRACOST_API_KEY
+      - POSTGRES_HOST
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    networks:
+      - database-net
+
+  api:
+    extends:
+      service: init_job
+    command: [ "npm", "run", "start" ]
+    environment:
+      - SELF_HOSTED_INFRACOST_API_KEY
+    ports:
+      - 4000:4000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Cron: Add a cron job to run every week to update the database data. The cron entry should look something like:
+  # 0 4 * * SUN docker-compose run --rm update_job npm run job:update >> /var/log/cron.log 2>&1
+  update_job:
+    extends:
+      service: init_job
+    command: ["npm", "run", "job:update"]
