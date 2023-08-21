@@ -6,7 +6,6 @@ networks:
 services:
   mailpit:
     image: axllent/mailpit:latest
-    container_name: mailpit
     networks:
       - mail-net
     ports:

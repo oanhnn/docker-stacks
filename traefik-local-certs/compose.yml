@@ -1,0 +1,50 @@
+networks:
+  proxy-net:
+    external: true
+    name: proxy-net
+
+services:
+  proxy:
+    image: traefik:v3.0
+    networks:
+      - proxy-net
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - "./traefik:/etc/traefik:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      start_period: 15s
+      interval: 5s
+      retries: 5
+      timeout: 4s
+
+  # whoami:
+  #   image: traefik/whoami:latest
+  #   container_name: whoami
+  #   environment:
+  #     - WHOAMI_NAME=whoami
+  #     - WHOAMI_PORT_NUMBER=80
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami-http.rule=Host(`app.example.test`)"
+  #     - "traefik.http.routers.whoami-http.entrypoints=web"
+  #     - "traefik.http.routers.whoami-http.middlewares=force-https@file"
+  #     - "traefik.http.routers.whoami-http.service=whoami@docker"
+  #     - "traefik.http.routers.whoami-https.rule=Host(`app.example.test`)"
+  #     - "traefik.http.routers.whoami-https.priority=10"
+  #     - "traefik.http.routers.whoami-https.entrypoints=websecure"
+  #     - "traefik.http.routers.whoami-https.tls=true"
+  #     - "traefik.http.routers.whoami-https.tls.domains[0].main=example.test"
+  #     - "traefik.http.routers.whoami-https.tls.domains[0].sans=*.example.test"
+  #     - "traefik.http.routers.whoami-https.service=whoami@docker"
+  #     - "traefik.http.services.whoami.loadBalancer.server.port=80"
+  #     - "traefik.http.services.whoami.loadBalancer.server.scheme=http"
+  #     - "traefik.http.services.whoami.loadBalancer.passHostHeader=true"
+  #   networks:
+  #     - proxy-net
+  #   restart: unless-stopped
