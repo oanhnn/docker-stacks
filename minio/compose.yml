@@ -45,15 +45,15 @@ services:
     #   - traefik.http.services.minio-adm.loadbalancer.server.port=8900
     networks:
       - proxy-net
-    # ports:
-    #   - 9000:9000
-    #   - 8900:8900
+    ports:
+      - 9000:9000
+      - 8900:8900
     restart: unless-stopped
     volumes:
       - minio-vol:/data
     healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      start_period: 20s
       interval: 5s
       retries: 5
-      start_period: 20s
-      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
-      timeout: 5s
+      timeout: 4s
