@@ -13,3 +13,9 @@ services:
       - "1025:1025"
       - "8025:8025"
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--spider',  'http://localhost:8025']
+      start_period: 10s
+      interval: 5s
+      retries: 5
+      timeout: 4s
