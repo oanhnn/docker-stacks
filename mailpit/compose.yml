@@ -1,0 +1,15 @@
+networks:
+  mail-net:
+    external: true
+    name: mail-net
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    networks:
+      - mail-net
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
