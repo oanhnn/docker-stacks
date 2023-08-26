@@ -1,3 +1,5 @@
+name: traefik
+
 networks:
   proxy-net:
     external: true
@@ -14,8 +16,8 @@ services:
       - "8080:8080"
     restart: unless-stopped
     volumes:
-      - "./traefik:/etc/traefik:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./traefik:/etc/traefik:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD", "traefik", "healthcheck"]
       start_period: 15s

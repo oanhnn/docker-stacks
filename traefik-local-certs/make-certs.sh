@@ -1,5 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
-$DOMAINS="$1.test *.$1.test"
+IP=$(ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+DOMAIN="${IP//\./-}.nip.io"
 
-mkcert -key-file traefik/certs/key.pem -cert-file traefik/certs/cert.pem $DOMAINS
+mkcert -install
+mkcert -key-file traefik/certs/key.pem -cert-file traefik/certs/cert.pem $DOMAIN *.$DOMAIN
+
+cp $(mkcert -CAROOT)/rootCA.pem traefik/certs/rootCA.pem
