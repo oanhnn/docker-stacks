@@ -1,16 +1,33 @@
 networks:
   mail-net:
-    external: true
     name: mail-net
+    external: true
+  # # If you use Traefik proxy, please uncomment below block
+  # proxy-net:
+  #   name: proxy-net
+  #   external: true
 
 services:
   mailpit:
     image: axllent/mailpit:latest
+    # # If you use Traefik proxy, please uncomment below block
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.mailpit-https.entrypoints=websecure
+    #   - traefik.http.routers.mailpit-https.rule=Host(`mail.${DOMAIN}`)
+    #   - traefik.http.routers.mailpit-https.tls=true
+    #   - traefik.http.routers.mailpit-https.tls.certresolver=le
+    #   - traefik.http.routers.mailpit-https.tls.domains[0].main=${DOMAIN}
+    #   - traefik.http.routers.mailpit-https.tls.domains[0].sans=*.${DOMAIN}
+    #   - traefik.http.routers.mailpit-https.service=mailpit
+    #   - traefik.http.services.mailpit.loadbalancer.server.port=8025
     networks:
       - mail-net
+      # - proxy-net
     ports:
       - "1025:1025"
-      - "8025:8025"
+      # If you don't use Traefik proxy, please comment below line
+      # - "8025:8025"
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--spider',  'http://localhost:8025']

@@ -9,7 +9,7 @@
 networks:
   # Reverse proxy network
   proxy-net:
-    name: reverse-proxy
+    name: proxy-net
     external: true
 
 volumes:
@@ -22,32 +22,42 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ':8900'
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?Variable not set}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?Variable not set}
+      # - MINIO_ROOT_USER
+      # - MINIO_ROOT_PASSWORD
       - MINIO_PROMETHEUS_AUTH_TYPE=public
-    # # Labels for Traefik proxy
+      # - MINIO_DOMAIN=minio.${DOMAIN}
+      # - MINIO_BROSER_REDIRECT_URL=https://adm-minio.${DOMAIN}
+      # - MINIO_SERVER_URL=https://minio.${DOMAIN}
+    # Labels for Traefik proxy
     # labels:
     #   - traefik.enable=true
-    #   - traefik.constraint-label=traefik-public
     #   - traefik.http.routers.minio.entrypoints=websecure
-    #   - traefik.http.routers.minio.rule=Host(`minio.example.com`)
+    #   - traefik.http.routers.minio.rule=Host(`minio.${DOMAIN}`)
     #   - traefik.http.routers.minio.service=minio
     #   - traefik.http.routers.minio.tls=true
     #   - traefik.http.routers.minio.tls.certresolver=le
+    #   - traefik.http.routers.minio.tls.domains[0].main=${DOMAIN}
+    #   - traefik.http.routers.minio.tls.domains[0].sans=*.${DOMAIN}
     #   - traefik.http.routers.minio.priority=10
     #   - traefik.http.services.minio.loadbalancer.server.port=9000
+    #   - traefik.http.services.minio.loadbalancer.server.scheme=http
+    #   - traefik.http.services.minio.loadbalancer.passHostHeader=true
     #   - traefik.http.routers.minio-adm.entrypoints=websecure
-    #   - traefik.http.routers.minio-adm.rule=Host(`adm-minio.example.com`)
-    #   - traefik.http.routers.minio-adm.service=minio
+    #   - traefik.http.routers.minio-adm.rule=Host(`adm-minio.${DOMAIN}`)
+    #   - traefik.http.routers.minio-adm.service=minio-adm
     #   - traefik.http.routers.minio-adm.tls=true
     #   - traefik.http.routers.minio-adm.tls.certresolver=le
+    #   - traefik.http.routers.minio-adm.tls.domains[0].main=${DOMAIN}
+    #   - traefik.http.routers.minio-adm.tls.domains[0].sans=*.${DOMAIN}
     #   - traefik.http.routers.minio-adm.priority=11
     #   - traefik.http.services.minio-adm.loadbalancer.server.port=8900
+    #   - traefik.http.services.minio-adm.loadbalancer.server.scheme=http
+    #   - traefik.http.services.minio-adm.loadbalancer.passHostHeader=true
     networks:
       - proxy-net
-    ports:
-      - 9000:9000
-      - 8900:8900
+    # ports:
+    #   - 9000:9000
+    #   - 8900:8900
     restart: unless-stopped
     volumes:
       - minio-vol:/data
