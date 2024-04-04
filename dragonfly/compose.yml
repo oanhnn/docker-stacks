@@ -1,0 +1,33 @@
+# =========================================
+# Redis
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  redis-net:
+    name: redis-net
+    external: true
+
+volumes:
+  redis-vol:
+    name: dragonfly-vol
+    external: true
+
+services:
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    # For better performance, consider `host` mode instead `port` to avoid docker NAT.
+    # `host` mode is NOT currently supported in Swarm Mode.
+    # https://docs.docker.com/compose/compose-file/compose-file-v3/#network_mode
+    # network_mode: "host"
+    networks:
+      - redis-net
+    # ports:
+    #   - "6379:6379"
+    ulimits:
+      memlock: -1
+    volumes:
+      - redis-vol:/data
