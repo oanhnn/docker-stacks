@@ -1,0 +1,38 @@
+# =========================================
+# Hashicorp Vault
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  # Reverse proxy network
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  vault-vol:
+    name: vault-vol
+    external: true
+
+services:
+  vault:
+    image: vault:1.18.3
+    command: vault server -config=/etc/vault/vault.hcl
+    environment:
+      - VAULT_LOG_LEVEL=info
+      - VAULT_LOG_FORMAT=standard # standard or json
+    cap_add:
+      - IPC_LOCK
+    expose:
+      - 8200
+    networks:
+      - proxy-net
+    ports:
+      - 8200:8200
+    restart: unless-stopped
+    volumes:
+      - vault-vol:/vault/file
+      - ./vault.hcl:/etc/vault/vault.hcl
