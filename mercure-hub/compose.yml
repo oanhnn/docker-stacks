@@ -1,0 +1,45 @@
+# =========================================
+# Mercure
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+services:
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      # Uncomment the following line to disable HTTPS
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+      MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+    # Uncomment the following line to enable the development mode
+    #command: /usr/bin/caddy run --config /etc/caddy/dev.Caddyfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/healthz"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - proxy-net
+    # ports:
+    #   - '80:80'
+    #   - '443:443'
+    volumes:
+      - mercure-data:/data
+      - mercure-config:/config
+
+volumes:
+  mercure-data:
+    name: mercure-data
+    external: true
+  mercure-conf:
+    name: mercure-conf
+    external: true
