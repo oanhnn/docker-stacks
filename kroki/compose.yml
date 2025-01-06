@@ -1,0 +1,60 @@
+# =========================================
+# Kroki stack
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+# Networks
+networks:
+  kroki-net:
+    external: true
+
+# Services
+services:
+  kroki:
+    image: yuzutech/kroki
+    environment:
+      - KROKI_LISTEN=0.0.0.0:8000
+      - KROKI_BLOCKDIAG_HOST=blockdiag
+      - KROKI_MERMAID_HOST=mermaid
+      - KROKI_BPMN_HOST=bpmn
+      - KROKI_EXCALIDRAW_HOST=excalidraw
+    networks:
+      - kroki-net
+    ports:
+      - 8000:8000
+    restart: unless-stopped
+
+  blockdiag:
+    image: yuzutech/kroki-blockdiag
+    networks:
+      - kroki-net
+    # ports:
+    #   - 8001:8001
+    restart: unless-stopped
+
+  mermaid:
+    image: yuzutech/kroki-mermaid
+    networks:
+      - kroki-net
+    # ports:
+    #   - 8002:8002
+    restart: unless-stopped
+
+  bpmn:
+    image: yuzutech/kroki-bpmn
+    networks:
+      - kroki-net
+    # ports:
+    #   - 8003:8003
+    restart: unless-stopped
+
+  excalidraw:
+    image: yuzutech/kroki-excalidraw
+    networks:
+      - kroki-net
+    # ports:
+    #   - 8004:8004
+    restart: unless-stopped
