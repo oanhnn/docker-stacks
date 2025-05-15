@@ -21,8 +21,35 @@ tls:
 
 http:
   middlewares:
-    force-https:
-      redirectScheme:
-        scheme: https
-        port: 443
-        permanent: true
+    # https-redirect middleware to redirect HTTP to HTTPS
+    # It can be re-used by other stacks in other Docker Compose files
+    #force-https:
+    #  redirectScheme:
+    #    scheme: https
+    #    port: 443
+    #    permanent: true
+
+    # admin-auth middleware with HTTP Basic auth
+    admin-auth:
+      basicAuth:
+        users:
+          - admin:$apr1$TpJTO99v$L2t58A0CchtSfYz5nziWH.
+
+    # internal-ips middleware to allow only access from internal IPs
+    internal-ips:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.0/8
+          - 10.0.0.0/8
+          - 192.168.0.0/16
+          - 172.16.0.0/16
+
+  routes:
+    traefik:
+      entrypoints: traefik
+      rule: PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`)
+      middlewares:
+        - internal-ips@file
+        - admin-auth@file
+      service: api@internal
+      priority: 62
