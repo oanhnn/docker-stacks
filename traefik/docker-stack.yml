@@ -13,8 +13,6 @@
 # - Docker Compose 1.18.0+
 # =========================================
 
-version: "3.5"
-
 # Networks
 networks:
   # Use the previously created public network "reverse-proxy", shared with other
@@ -23,11 +21,11 @@ networks:
     name: reverse-proxy
     external: true
 
-# Secrets
-secrets:
-  linode-token:
-    name: linode-token
-    external: true
+# # Secrets
+# secrets:
+#   linode-token:
+#     name: linode-token
+#     external: true
 
 # Volumes
 volumes:
@@ -43,86 +41,8 @@ services:
   proxy:
     image: traefik:v2.8
     environment:
-      # Enable the Dashboard and API
-      - TRAEFIK_API_DASHBOARd=true
-      # - TRAEFIK_API_DEBUG=false
-      # - TRAEFIK_API_INSECURE=false
-
-      # Using Let's Encrypt as certificates resolver
-      - TRAEFIK_CERTIFICATESRESOLVERS_le=true
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_EMAIL=${EMAIL:?Variable not set}
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_KEYTYPE=RSA4096
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_STORAGE=/certificates/acme.json
-      # For debug acme
-      # - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_CASERVER=https://acme-staging-v02.api.letsencrypt.org/directory
-      # Use the DNS Challenge with Linode Provider
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_DNSCHALLENGE=true
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_DNSCHALLENGE_PROVIDER=linode
-      - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_DNSCHALLENGE_RESOLVERS=1.1.1.1:53,8.8.8.8:53
-      # Use the TLS Challenge
-      # - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_TLSCHALLENGE=true
-      # Use the HTTP Challenge
-      # - TRAEFIK_CERTIFICATESRESOLVERS_le_ACME_HTTPCHALLENGE=true
-
-      # Create two entrypoints `web` listening on port 80 and `websecure` listening on port 443.
-      - TRAEFIK_ENTRYPOINTS_web_ADDRESS=:80
-      - TRAEFIK_ENTRYPOINTS_websecure_ADDRESS=:443
-      - TRAEFIK_ENTRYPOINTS_traefik_ADDRESS=:8080
-      # Redirect all traffic coming in at port 80 to port 443
-      - TRAEFIK_ENTRYPOINTS_web_HTTP_REDIRECTIONS_ENTRYPOINT_PERMANENT=true
-      - TRAEFIK_ENTRYPOINTS_web_HTTP_REDIRECTIONS_ENTRYPOINT_PRIORITY=10
-      - TRAEFIK_ENTRYPOINTS_web_HTTP_REDIRECTIONS_ENTRYPOINT_SCHEME=https
-      - TRAEFIK_ENTRYPOINTS_web_HTTP_REDIRECTIONS_ENTRYPOINT_TO=websecure
-      # Setting up middlewares and tls for port 443
-      - TRAEFIK_ENTRYPOINTS_websecure_HTTP_TLS=true
-      - TRAEFIK_ENTRYPOINTS_websecure_HTTP_TLS_CERTRESOLVER=le
-      - TRAEFIK_ENTRYPOINTS_websecure_HTTP_TLS_DOMAINS_0_MAIN="${DOMAIN:?Variable not set}"
-      - TRAEFIK_ENTRYPOINTS_websecure_HTTP_TLS_DOMAINS_0_SANS="*.${DOMAIN:?Variable not set}"
-
-      # Misc
-      - TRAEFIK_GLOBAL_CHECKNEWVERSION=false
-      - TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE=false
-      - TRAEFIK_HUB=true
-      - TRAEFIK_EXPERIMENTAL_HUB=true
-      # - TRAEFIK_HUB_TLS_INSECURE=true
-      # - TRAEFIK_HUB_TLS_CA=
-      # - TRAEFIK_HUB_TLS_KEY=
-
-      # Enable the access log, with HTTP requests
-      # - TRAEFIK_ACCESSLOG=true
-
-      # Enable the Traefik log, for configurations and errors
-      - TRAEFIK_LOG=true
-      - TRAEFIK_LOG_LEVEL=INFO
-
-      # Enable metrics
-      - TRAEFIK_METRICS=true
-      - TRAEFIK_METRICS_PROMETHEUS=true
-      - TRAEFIK_METRICS_PROMETHEUS_ADDENTRYPOINTSLABELS=true
-      - TRAEFIK_METRICS_PROMETHEUS_ADDSERVICESLABELS=true
-      - TRAEFIK_METRICS_PROMETHEUS_ENTRYPOINT=traefik
-      # - TRAEFIK_METRICS_PROMETHEUS_MANUALROUTING=true
-
-      # Enable ping
-      - TRAEFIK_PING=1
-      - TRAEFIK_PING_ENTRYPOINT=traefik
-      # - TRAEFIK_PING_MANUALROUTING=true
-
-      # Tracing
-      # - TRAEFIK_TRACING=true
-
-      # Enable Docker provider in Traefik, so that it reads labels from Docker services.
-      # Do not expose all Docker services, only the ones explicitly exposed:
-      # Services in `reverse-proxy` networks and have label `traefik.constraint-label=traefik-public`
-      - TRAEFIK_PROVIDERS_DOCKER=true
-      - TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT=false
-      - TRAEFIK_PROVIDERS_DOCKER_NETWORK=reverse-proxy
-      - TRAEFIK_PROVIDERS_DOCKER_CONSTRAINTS=Label(`traefik.constraint-label`, `traefik-public`)
-      - TRAEFIK_PROVIDERS_DOCKER_ENDPOINT=unix:///var/run/docker.sock
-      - TRAEFIK_PROVIDERS_DOCKER_SWARMMODE=true
-      - TRAEFIK_PROVIDERS_DOCKER_WATCH=true
-      # Others
-      - LINODE_TOKEN_FILE=/run/secrets/linode-token
+      - TZ=Asia/Ho_Chi_Minh
+      #- LINODE_TOKEN_FILE=/run/secrets/linode-token
     deploy:
       placement:
         constraints:
@@ -131,38 +51,36 @@ services:
           - node.labels.node-has-traefik == true
 
       labels:
-        # Enable Traefik for this service
-        - traefik.enable=true
-        - traefik.constraint-label=traefik-public
+        # Enable Traefik for this service, to make it available in the public network
+      - traefik.enable=true
 
-        # Setting middlewares
-        # - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME:?Variable not set}:${HASHED_PASSWORD:?Variable not set}
-        - traefik.http.middlewares.internal-ips.ipwhitelist.sourceRange=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
-        - traefik.http.middlewares.compress.compress=true
+      # Use the custom label "traefik.constraint-label=traefik-public"
+      # This public Traefik will only use services with this label
+      # That way you can add other internal Traefik instances per stack if needed
+      - traefik.constraint-label=traefik-public
 
-        # Setup Traefik API anf Web UI/Dashboard using the special Traefik service api@internal
-        - traefik.http.routers.traefik-api.entrypoints=websecure
-        - traefik.http.routers.traefik-api.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`))
-        - traefik.http.routers.traefik-api.middlewares=internal-ips@docker,compress@docker
-        - traefik.http.routers.traefik-api.service=api@internal
-        - traefik.http.routers.traefik-api.priority=10
-        - traefik.http.services.traefik-api-svc.loadbalancer.server.port=8080
+      # admin-auth middleware with HTTP Basic auth
+      - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME:?Variable not set}:${HASHED_PASSWORD:?Variable not set}
 
-        # # Setup Traefik ping using the special Traefik service ping@internal
-        # - traefik.http.routers.traefik-ping.entrypoints=websecure
-        # - traefik.http.routers.traefik-ping.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/ping`)
-        # - traefik.http.routers.traefik-ping.middlewares=internal-ips@docker
-        # - traefik.http.routers.traefik-ping.service=ping@internal
-        # - traefik.http.routers.traefik-ping.priority=15
-        # - traefik.http.services.traefik-ping.loadbalancer.server.port=8080
+      # internal-ips middleware to allow only access from internal IPs
+      - traefik.http.middlewares.internal-ips.ipallowlist.sourcerange=127.0.0.0/8,10.0.0.0/8,192.168.0.0/16,172.16.0.0/16
 
-        # # Handle metrics requests
-        # - traefik.http.routers.traefik-metrics.entrypoints=websecure
-        # - traefik.http.routers.traefik-metrics.rule=Host(`traefik.${DOMAIN:?Variable not set}`) && PathPrefix(`/metrics`)
-        # - traefik.http.routers.traefik-metrics.middlewares=internal-ips@docker
-        # - traefik.http.routers.traefik-metrics.service=prometheus@internal
-        # - traefik.http.routers.traefik-metrics.priority=20
-        # - traefik.http.services.traefik-metrics.loadbalancer.server.port=8080
+      # # https-redirect middleware to redirect HTTP to HTTPS
+      # # It can be re-used by other stacks in other Docker Compose files
+      # - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      # - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+
+      # Setup Traefik API anf Web UI/Dashboard using the special Traefik service api@internal
+      - traefik.http.routers.traefik.entrypoints=traefik
+      - traefik.http.routers.traefik.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`)
+      #- traefik.http.routers.traefik.rule=Host(`${DOMAIN:?Variable not set}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/debug`))
+      - traefik.http.routers.traefik.middlewares=internal-ips,admin-auth
+      - traefik.http.routers.traefik.service=api@internal
+      #- traefik.http.routers.traefik.tls=true
+      #- traefik.http.routers.traefik.tls.certresolver=le
+      #- traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN:?Variable not set}
+      - traefik.http.routers.traefik.priority=62
+      #- traefik.http.services.traefik-svc.loadbalancer.server.port=8080
 
     networks:
       # Use the public network created to be shared between Traefik and
@@ -180,8 +98,13 @@ services:
         published: 443
         mode: host
 
-    secrets:
-      - linode-token
+      # Listen on port 443, default for HTTPS
+      - target: 8080
+        published: 8080
+        mode: host
+
+    # secrets:
+    #   - linode-token
 
     volumes:
       - certs-vol:/certificates
@@ -189,7 +112,6 @@ services:
 
     healthcheck:
       test: ["CMD", "traefik", "healthcheck"]
-      # test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "--header='Host: traefik.${DOMAIN}'", "https://localhost/ping"]
       start_period: 10s
       interval: 3s
       timeout: 5s

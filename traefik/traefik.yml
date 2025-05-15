@@ -1,82 +1,264 @@
+################################################################
+#
+# Configuration sample for Traefik v2+.
+#
+# For Traefik v1: https://github.com/traefik/traefik/blob/v1.7/traefik.sample.toml
+#
+################################################################
+
+################################################################
+# Global configuration
+################################################################
+
 global:
   checkNewVersion: true
   sendAnonymousUsage: true
 
-api:
-  insecure: false
-  dashboard: true
-  debug: false
+################################################################
+# EntryPoints configuration
+################################################################
 
+# EntryPoints definition
+#
+# Optional
+#
 entryPoints:
   web:
     address: :80
     http:
       redirections:
         entryPoint:
-          permanent: true
-          priority: 10
-          scheme: https
           to: websecure
+          scheme: https
+
   websecure:
     address: :443
-    http:
-      middlewares:
-        - compress@file
-      tls:
-        certResolver: le
-        domains:
-          - main: ${DOMAIN}
-            sans:
-              - "*.${DOMAIN}"
 
-accessLog: {}
+  traefik:
+    address: :8080
 
+################################################################
+# Traefik logs configuration
+################################################################
+
+# Traefik logs
+#
+# Optional
+# Enabled by default and log to stdout
+#
 log:
+  # Log level
+  #
+  # Optional
+  # Default: "ERROR"
+  #
   level: INFO
 
-ping:
-  entryPoint: websecure
-  manualRouting: true
+  # Sets the filepath for the traefik log. If not specified, stdout will be used.
+  # Intermediate directories are created if necessary.
+  #
+  # Optional
+  # Default: os.Stdout
+  #
+  #filePath: log/traefik.log
 
+  # Format is either "json" or "common".
+  #
+  # Optional
+  # Default: "common"
+  #
+  #format: json
+
+
+################################################################
+# Access logs configuration
+################################################################
+
+# Enable access logs
+#
+# Optional
+# By default it will write to stdout and produce logs in the textual
+# Common Log Format (CLF), extended with additional fields.
+#
+#accessLog:
+  # Sets the file path for the access log. If not specified, stdout will be used.
+  # Intermediate directories are created if necessary.
+  #
+  # Optional
+  # Default: os.Stdout
+  #
+  #filePath: /path/to/log/log.txt
+
+  # Format is either "json" or "common".
+  #
+  # Optional
+  # Default: "common"
+  #
+  #format: json
+
+################################################################
+# API and dashboard configuration
+################################################################
+
+# Enable API and dashboard
+#
+# Optional
+#
+api:
+  # Enable the API in insecure mode
+  #
+  # Optional
+  # Default: false
+  #
+  #insecure: true
+
+  # Enabled Dashboard
+  #
+  # Optional
+  # Default: true
+  #
+  dashboard: true
+
+  # Enable additional endpoints for debugging and profiling
+  #
+  # Optional
+  # Default: false
+  #
+  #debug: true
+
+################################################################
+# Ping configuration
+################################################################
+
+# Enable ping
+#
+# Optional
+#
+ping:
+  # Name of the related entry point
+  #
+  # Optional
+  # Default: "traefik"
+  #
+  entryPoint: traefik
+
+  # Enable to create a custom router for the ping@internal service
+  #
+  # Optional
+  # Deafult: false
+  #
+  #manualRouting: true
+
+################################################################
+# Metrics configuration
+################################################################
+
+# Enable metrics
+#
+# Optional
+#
 metrics:
+  # Enable the Prometheus metrics
+  #
+  # Optional
+  #
   prometheus:
-    addEntryPointsLabels: true
-    addRoutersLabels: true
-    addServicesLabels: true
-    entryPoint: websecure
-    manualRouting: true
+    # Buckets for latency metrics
+    #
+    # Optional
+    # Default: [0.100000, 0.300000, 1.200000, 5.000000]
+    #
+    #buckets: [0.1, 0.3, 1.2, 5.0]
+
+    # Enable to add more labels to metrics
+    #
+    # Optional
+    # Default: addEntryPointsLabels=true, addRoutersLabels=false, addServicesLabels=true
+    #
+    #addEntryPointsLabels: true
+    #addRoutersLabels: true
+    #addServicesLabels: true
+
+    # Entry point used to expose metrics
+    #
+    # Optional
+    # Default: traefik
+    #
+    entryPoint: traefik
+
+    # Enable to create a custom router for the prometheus@internal service
+    #
+    # Optional
+    # Default: false
+    #
+    #manualRouting: true
+
+################################################################
+# Certificates Resolvers configuration
+################################################################
 
 certificatesResolvers:
   le:
     acme:
       email: ${EMAIL}
-      caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      #caServer: https://acme-staging-v02.api.letsencrypt.org/directory
       storage: RSA4096
       keyType: /certificates/acme.json
       # dnsChallenge:
-      #   provider: foobar
+      #   provider: linode
       #   delayBeforeCheck: 42s
       #   resolvers:
-      #     - foobar
-      #     - foobar
+      #     - 1.1.1.1:53
+      #     - 8.8.8.8:53
       #   disablePropagationCheck: true
       # httpChallenge:
       #   entryPoint: foobar
       tlsChallenge: {}
 
-hub:
-  tls:
-    insecure: true
+
+################################################################
+# Dynamic configuration backend
+################################################################
 
 providers:
+  # Enable Docker configuration backend
   docker:
+    # Docker server endpoint. Can be a tcp or a unix socket endpoint.
+    #
+    # Required
+    # Default: "unix:///var/run/docker.sock"
+    #
+    endpoint: "unix:///var/run/docker.sock" # tcp://10.10.10.10:2375
+
+    # Expose containers by default in traefik
+    #
+    # Optional
+    # Default: true
+    #
+    exposedByDefault: false
+
+    # An expression that Traefik matches against the container labels to determine whether to create any route for that container
+    #
+    # Optional
+    # Default: ""
     constraints: Label(`traefik.constraint-label`, `traefik-public`)
-    endpoint: unix:///var/run/docker.sock
-    exposedByDefault: true
+
+    # Defines a default docker network to use for connections to all containers
+    #
+    # Optional
+    # Default: ""
     network: reverse-proxy
-    watch: true
-  # file:
-  #   directory: foobar
-  #   watch: true
-  #   filename: foobar
-  #   debugLogGeneratedTemplate: true
+
+    # Default host rule.
+    #
+    # Optional
+    # Default: "Host(`{{ normalize .Name }}`)"
+    #
+    #defaultRule: Host(`{{ normalize .Name }}.docker.localhost`)
+
+  # Enable file configuration backend
+  #file:
+    #directory: foobar
+    #watch: true
+    #filename: foobar
+    #debugLogGeneratedTemplate: true
