@@ -16,44 +16,74 @@ networks:
     name: reverse-proxy
     external: true
 
+
+volumes:
+  # Data volume
+  n8n-data:
+    name: n8n-data-vol
+
 services:
   n8n:
-    image: docker.io/n8nio/n8n:latest
+    image: docker.io/n8nio/n8n:1.92.2
     environment:
-      # https://docs.n8n.io/reference/environment-variables.html#database
+      # https://docs.n8n.io/hosting/configuration/environment-variables/deployment/
+      - N8N_HOST=${DOMAIN:?Variable not set}
+      - N8N_PROTOCOL=https
+      - N8N_ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # https://docs.n8n.io/hosting/configuration/environment-variables/database/
       - DB_TYPE=postgresdb  # sqlite, postgresdb, mysqldb, mariadb
       - DB_TABLE_PREFIX=n8n_
       - DB_POSTGRESDB_HOST=db
       - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_USER=user
-      - DB_POSTGRESDB_PASSWORD=password
-      - DB_POSTGRESDB_DATABASE=n8ndb
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
       - DB_POSTGRESDB_SCHEMA=public
-      # https://docs.n8n.io/reference/environment-variables.html#timezone
+      # https://docs.n8n.io/hosting/configuration/environment-variables/timezone-localization/
+      - TZ=UTC
       - GENERIC_TIMEZONE=UTC
-      # https://docs.n8n.io/reference/environment-variables.html#security
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=user
-      - N8N_BASIC_AUTH_PASSWORD=password
-      # https://docs.n8n.io/reference/environment-variables.html#user-management-and-smtp
+      - N8N_DEFAULT_LOCALE=en
+      # https://docs.n8n.io/hosting/configuration/environment-variables/logs/
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console
+      - DB_LOGGING_ENABLED=true
+      - DB_LOGGING_OPTIONS=error
+      # https://docs.n8n.io/hosting/configuration/environment-variables/user-management-smtp-2fa/
       - N8N_EMAIL_MODE=smtp
-      - N8N_SMTP_HOST=smtp.google.com
-      - N8N_SMTP_PORT=587
-      - N8N_SMTP_USER=username
-      - N8N_SMTP_PASS=password
-      - N8N_SMTP_SENDER=no-reply@example.com
+      - N8N_SMTP_HOST=${SMTP_HOST}
+      - N8N_SMTP_PORT=${SMTP_PORT}
+      - N8N_SMTP_USER=${SMTP_USER}
+      - N8N_SMTP_PASS=${SMTP_PASSWORD}
+      - N8N_SMTP_SENDER=${SMTP_SENDER}
       - N8N_SMTP_SSL=true
-      # https://docs.n8n.io/reference/environment-variables.html#endpoints
+      - N8N_MFA_ENABLED=true
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${JWT_SECRET:?Variable not set}
+      # https://docs.n8n.io/hosting/configuration/environment-variables/endpoints/
+      - WEBHOOK_URL=https://${DOMAIN:?Variable not set}
       - N8N_METRICS=true
       - N8N_METRICS_PREFIX=n8n_
+      # https://docs.n8n.io/hosting/configuration/environment-variables/workflows/
+      - N8N_WORKFLOW_ACTIVATION_BATCH_SIZE=2
+
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     # labels:
     #   # Labels for Traefik proxy
     #   - traefik.enable=true
     #   - traefik.constraint-label=traefik-public
     #   - traefik.http.routers.n8n.entrypoints=websecure
-    #   - traefik.http.routers.n8n.rule=Host(`n8n.example.com`)
+    #   - traefik.http.routers.n8n.rule=Host(`${DOMAIN:?Variable not set}`)
     #   - traefik.http.routers.n8n.service=n8n
     #   - traefik.http.routers.n8n.priority=12
+    #   - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+    #   - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+    #   - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+    #   - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+    #   - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+    #   - traefik.http.middlewares.n8n.headers.SSLHost=${DOMAIN:?Variable not set}
+    #   - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+    #   - traefik.http.middlewares.n8n.headers.STSPreload=true
+    #   - traefik.http.routers.n8n.middlewares=n8n@docker
     #   - traefik.http.services.n8n.loadbalancer.server.port=5678
     networks:
       - database-net
