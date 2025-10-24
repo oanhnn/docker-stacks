@@ -35,6 +35,7 @@
 
 ## Docker tools
 
+- [x] [Registry](./docker-registry/README.md) - A storage and content delivery system
 - [x] [Doku](./doku/README.md) - Docker disk usage dashboard
 
 

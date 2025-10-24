@@ -1,0 +1,42 @@
+# =========================================
+# Docker Registry
+# Version 3.x
+# =========================================
+
+networks:
+  proxy-net:
+    name: reverse-proxy
+    external: true
+
+volumes:
+  registry-vol:
+    name: registry-vol
+    external: true
+
+services:
+  registry:
+    image: registry:3
+    environment:
+      # Registry settings
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5000
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/cert.pem
+      - REGISTRY_HTTP_TLS_KEY=/certs/key.pem
+      # Authentication settings
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm"
+    networks:
+      - proxy-net
+    # ports:
+    #   - 5000:5000
+    restart: unless-stopped
+    volumes:
+      - registry-vol:/var/lib/registry
+      - ./.htpasswd:/auth/htpasswd:ro
+      - ./certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      start_period: 20s
+      interval: 5s
+      timeout: 5s
+      retries: 5
