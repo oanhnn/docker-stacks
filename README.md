@@ -21,19 +21,21 @@
 
 ## Design
 
-- [ ] Penpot
+- [x] [Penpot](./penpot/README.md)
 
 ## Low code
 
-- Metabase
+- [x] [Metabase](./metabase/README.md)
 
 ## Production
 
-- [x] Ghost
+- [x] [Ghost](./ghost/README.md)
 - [x] Focalboard
 - [x] Redoc
 
-## Demo
+## Docker tools
+
+- [x] [Doku](./doku/README.md) - Docker disk usage dashboard
 
 
 ## Prepare
