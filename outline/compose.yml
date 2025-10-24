@@ -1,0 +1,38 @@
+# =========================================
+# Outline
+# https://getoutline.com/
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+  proxy-net:
+    name: reverse-proxy
+    external: true
+  redis-net:
+    name: redis-net
+    external: true
+
+volumes:
+  outline-vol:
+    name: outline-vol
+    external: true
+
+services:
+  outline:
+    image: outlinewiki/outline
+    env_file: ./docker.env
+    networks:
+      - proxy-net
+      - database-net
+      - redis-net
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - outline-vol:/var/lib/outline/data
