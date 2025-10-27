@@ -11,19 +11,19 @@ docker network create database-net
 2. Create docker volumes
 
 ```
-docker volume create postgres-vol
+docker volume create clickhouse-vol
+docker volume create clickhouse-log
 ```
-
 3. Create environment file
 
 ```
 touch .env
-echo "POSTGRES_DB=defaultdb" >> .env
-echo "POSTGRES_USER=dbmaster" >> .env
-echo "POSTGRES_PASSWORD=Pa55wOrd!" >> .env
+echo "CLICKHOUSE_DB=defaultdb" >> .env
+echo "CLICKHOUSE_USER=dbmaster" >> .env
+echo "CLICKHOUSE_PASSWORD=Pa55wOrd!" >> .env
 ```
 
-4. Start PostgreSQL
+4. Start ClickHouse
 
 ```
 docker compose up -d

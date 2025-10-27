@@ -18,7 +18,7 @@ volumes:
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:18-alpine
     environment:
       # - POSTGRES_INITDB_ARGS=
       - POSTGRES_DB=${POSTGRES_DB}

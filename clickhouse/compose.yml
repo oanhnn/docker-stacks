@@ -1,0 +1,53 @@
+# =========================================
+# Clickhouse
+#
+# Requires:
+# - Docker Engine 19.03.0+
+# - Docker Compose 1.27.0+
+# =========================================
+
+networks:
+  database-net:
+    name: database-net
+    external: true
+
+volumes:
+  clickhouse-vol:
+    name: clickhouse-vol
+    external: true
+  clickhouse-log:
+    name: clickhouse-log
+    external: true
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.9-alpine
+    environment:
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB}
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+    networks:
+      - database-net
+    # ports:
+    #   - 8123:8123
+    #   - 9000:9000
+    #   - 9009:9009
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    cap_add:
+      - SYS_NICE
+      - NET_ADMIN
+      - IPC_LOCK
+    restart: unless-stopped
+    stop_signal: SIGINT
+    volumes:
+      - clickhouse-vol:/var/lib/clickhouse
+      - clickhouse-log:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --query 'SELECT 1'"]
+      start_period: 20s
+      retries: 3
+      timeout: 3s
+      interval: 10s
