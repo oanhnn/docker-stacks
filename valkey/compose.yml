@@ -1,5 +1,5 @@
 # =========================================
-# Redis
+# Valkey (https://valkey.io) - Redis Fork for Open Source Forever
 #
 # Requires:
 # - Docker Engine 19.03.0+
@@ -12,23 +12,23 @@ networks:
     external: true
 
 volumes:
-  redis-vol:
-    name: redis-vol
+  valkey-vol:
+    name: valkey-vol
     external: true
 
 services:
-  redis:
-    image: redis:8-alpine
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "notice"]
+  valkey:
+    image: valkey/valkey:9-alpine
+    # command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
     networks:
       - redis-net
     # ports:
     #   - 6379:6379
     restart: unless-stopped
     volumes:
-      - redis-vol:/data
+      - valkey-vol:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       start_period: 10s
       retries: 3
       timeout: 5s
