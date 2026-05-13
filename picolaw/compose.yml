@@ -27,6 +27,8 @@ services:
     restart: unless-stopped
     profiles:
       - gateway
+    environment:
+      - PICOCLAW_GATEWAY_HOST=0.0.0.0
     # Uncomment to access host network; leave commented unless needed.
     #extra_hosts:
     #  - "host.docker.internal:host-gateway"
