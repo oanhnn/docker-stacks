@@ -1,0 +1,38 @@
+
+volumes:
+  9router_data:
+    name: 9router-data-volume
+    external: true
+
+services:
+  9router:
+    image: 9router:latest
+    container_name: 9router
+    restart: unless-stopped
+    environment:
+      # Runtime configuration
+      - NODE_ENV=production
+      # Framework configuration
+      - HOSTNAME=0.0.0.0
+      - PORT=20128
+      # Application configuration
+      - DATA_DIR=/app/data
+      - ENABLE_REQUEST_LOGS=true
+      - AUTH_COOKIE_SECURE=true
+      - REQUIRE_API_KEY=true
+      - BASE_URL=http://localhost:20128
+      - CLOUD_URL=http://192.168.10.164:20128
+      # Security configuration
+      - INITIAL_PASSWORD=${9ROUTER_INITIAL_PASSWORD}
+      - JWT_SECRET=${9ROUTER_JWT_SECRET}
+      - API_KEY_SECRET=${9ROUTER_API_KEY_SECRET}
+      - MACHINE_ID_SALT=${9ROUTER_MACHINE_ID_SALT}
+      # # Proxy configuration
+      # - ALL_PROXY=http://localhost:8080
+      # - HTTP_PROXY=http://localhost:8080
+      # - HTTPS_PROXY=http://localhost:8080
+      # - NO_PROXY=localhost
+    volumes:
+      - 9router_data:/app/data
+    ports:
+      - "20128:20128"
