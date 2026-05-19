@@ -23,10 +23,10 @@ services:
       - BASE_URL=http://localhost:20128
       - CLOUD_URL=http://192.168.10.164:20128
       # Security configuration
-      - INITIAL_PASSWORD=${9ROUTER_INITIAL_PASSWORD}
-      - JWT_SECRET=${9ROUTER_JWT_SECRET}
-      - API_KEY_SECRET=${9ROUTER_API_KEY_SECRET}
-      - MACHINE_ID_SALT=${9ROUTER_MACHINE_ID_SALT}
+      - INITIAL_PASSWORD=${INITIAL_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - API_KEY_SECRET=${API_KEY_SECRET}
+      - MACHINE_ID_SALT=${MACHINE_ID_SALT}
       # # Proxy configuration
       # - ALL_PROXY=http://localhost:8080
       # - HTTP_PROXY=http://localhost:8080
