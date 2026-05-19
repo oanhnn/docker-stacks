@@ -6,7 +6,7 @@ volumes:
 
 services:
   9router:
-    image: 9router:latest
+    image: decolua/9router:latest
     container_name: 9router
     restart: unless-stopped
     environment:
