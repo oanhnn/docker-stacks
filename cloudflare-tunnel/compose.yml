@@ -1,15 +1,48 @@
-services:
-  cloudflare-tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflare-tunnel
-    restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    command: tunnel run
-    # Ensure it is on the same network as the service you want to expose
-    networks:
-      - tunnel-net
+# Docker Compose configuration for setting up a Cloudflare Tunnel container
+#
+# This configuration pulls the latest Cloudflare Tunnel image from the specified repository
+# and includes options for logging, automatic updates using Watchtower, health checks, and volume mounting.
 
-networks:
-  tunnel-net:
-    name: tunnel-net
+services:
+
+  # Cloudflare Tunnel Service
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest              # Pull the latest version of the Cloudflare Tunnel image
+    container_name: cloudflare-tunnel                 # Name of the Cloudflare Tunnel container
+    hostname: cloudflare-tunnel                       # Hostname for the Cloudflare Tunnel container
+
+    restart: unless-stopped                           # Restart the container unless manually stopped
+
+    # Logging configuration for Cloudflare Tunnel container
+    logging:
+      driver: "json-file"                             # Use the default json-file logging driver
+      options:
+        max-size: "100m"                              # Maximum log file size before rotation (100 MB)
+        max-file: "10"                                # Maximum number of log files to retain (10)
+
+    # Network mode configuration
+    network_mode: "host"                              # Use the host network (no isolation between host and container)
+
+    # Command to run Cloudflare Tunnel
+    command: tunnel run                               # Command to start the Cloudflare tunnel
+
+    # Volume configuration for time synchronization and hosts file persistence
+    volumes:
+      - /etc/localtime:/etc/localtime:ro              # Synchronize time with the host
+      - ./config/hosts:/etc/hosts                     # Mount hosts file from host to container
+
+    # Environment variables for Cloudflare Tunnel
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}       # Pass the Cloudflare Tunnel token from environment variable
+
+    # Health check configuration to verify Cloudflare Tunnel readiness
+    healthcheck:
+      test: ["CMD", "cloudflared", "--version"]       # Check if cloudflared version command works
+      interval: 30s                                   # Time between health check attempts
+      timeout: 10s                                    # Time to wait for a response
+      retries: 3                                      # Number of retries before marking as unhealthy
+      start_period: 10s                               # Delay before health checks begin
+
+    # Container labels for additional metadata
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"  # Enable automatic updates with Watchtower

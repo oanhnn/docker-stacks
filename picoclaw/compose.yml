@@ -55,12 +55,3 @@ services:
       - "18790:18790"
     volumes:
       - ./data:/root/.picoclaw
-
-    networks:
-      - tunnel-net
-
-networks:
-  tunnel-net:
-    name: tunnel-net
-    external: true
-

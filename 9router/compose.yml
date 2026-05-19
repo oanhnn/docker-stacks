@@ -21,7 +21,7 @@ services:
       - AUTH_COOKIE_SECURE=true
       - REQUIRE_API_KEY=true
       - BASE_URL=http://localhost:20128
-      - CLOUD_URL=http://192.168.10.164:20128
+      - CLOUD_URL=http://xx.xx.xx.xx:20128
       # Security configuration
       - INITIAL_PASSWORD=${INITIAL_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}

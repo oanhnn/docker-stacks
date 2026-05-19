@@ -1,0 +1,2 @@
+# Ignore the data directory, which may contain sensitive information or large files that should not be committed to version control.
+./data
